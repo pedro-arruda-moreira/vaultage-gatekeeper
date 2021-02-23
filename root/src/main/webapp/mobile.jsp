@@ -4,6 +4,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+<%
+	String token = TokenManager.generateNewToken();
+%>
 <meta charset="ISO-8859-1">
 <title>Redirecting to mobile app...</title>
 <script type="text/javascript">
@@ -16,11 +19,7 @@
 	Please wait, redirecting...
 	<form method="post" action="/pwa/auth" id="frm1">
 		<input type="hidden" name="type" value="token" />
-<%
-	String token = TokenManager.generateNewToken();
-%>
 		<input type="hidden" name="value" value="<%=token%>" />
-		<input type="hidden" name="use_basic" value="<%=request.getAttribute("use_basic")%>" />
 	</form>
 </body>
 </html>

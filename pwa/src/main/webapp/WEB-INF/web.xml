@@ -12,6 +12,22 @@
 		<listener-class>com.github.pedroarrudamoreira.vaultage.pwa.security.listener.SecurityListener</listener-class>
 	</listener>
 	
+	<listener>
+		<listener-class>com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController</listener-class>
+	</listener>
+	
+	<session-config>
+		<!-- session duration of 3 days. -->
+		<session-timeout>4320</session-timeout>
+		<cookie-config>
+			<http-only>true</http-only>
+			<!-- cookie duration of 3 days -->
+			<max-age>259200</max-age>
+			<path>/pwa</path>
+			<name>AppSession</name>
+		</cookie-config>
+	</session-config>
+	
 	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
 		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>

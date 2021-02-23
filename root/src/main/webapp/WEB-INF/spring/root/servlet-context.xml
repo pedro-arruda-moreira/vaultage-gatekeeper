@@ -21,8 +21,12 @@
 	</beans:bean>
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.MobileServlet"
 		id="mobileServlet">
-		<beans:property name="useBasic" value="${useBasic:true}" />
 	</beans:bean>
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
+		<beans:property name="maxSessionsPerDay" value="${max-sessions-per-day:5}" />
+		<beans:property name="maxSessionsPerHour" value="${max-sessions-per-hour:3}" />
+	</beans:bean>
+	
 
 	<authentication-manager>
 		<authentication-provider>

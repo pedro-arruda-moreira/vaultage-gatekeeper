@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.web.context.ServletContextAware;
 
-import com.github.pedroarrudamoreira.vaultage.root.util.ObjectFactory;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.AccessLevel;
 import lombok.Cleanup;
@@ -40,15 +40,13 @@ public class MobileServlet extends HttpServlet implements ServletContextAware {
 			"/mobile.jsp");
 
 	private Pattern mobilePattern;
-	@Setter
-	private String useBasic;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String userAgent = req.getHeader("User-Agent").toUpperCase();
 
 		if(mobilePattern.matcher(userAgent).matches()) {
-			req.setAttribute("use_basic", useBasic);
+			req.setAttribute("use_basic", "true");
 			getMobileDispatcher().forward(req, resp);
 		} else {
 			getVaultageCliDispatcher().forward(req, resp);

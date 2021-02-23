@@ -15,7 +15,7 @@ setTimeout(function() {
 <body>
 Taking you to the PWA now.
 <form method="get" action="/pwa" id="frm1">
-	<input type="hidden" name="use_basic" value="<%=SecurityListener.useBasic() %>" />
+	<input type="hidden" name="use_basic" value="true" />
 	<input type="hidden" name="self_contained" value="true" />
 </form>
 </body>

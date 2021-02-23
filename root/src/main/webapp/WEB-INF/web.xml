@@ -14,6 +14,18 @@
 	<listener>
 		<listener-class>com.github.pedroarrudamoreira.vaultage.root.listener.Listener</listener-class>
 	</listener>
+	
+	<session-config>
+		<!-- session duration of 3 days. -->
+		<session-timeout>4320</session-timeout>
+		<cookie-config>
+			<http-only>true</http-only>
+			<!-- cookie duration of 3 days -->
+			<max-age>259200</max-age>
+			<path>/</path>
+			<name>WebSession</name>
+		</cookie-config>
+	</session-config>
 
 	<filter>
 		<filter-name>springSecurityFilterChain</filter-name>
