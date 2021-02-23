@@ -1,0 +1,30 @@
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<http use-expressions="true" >
+		<csrf disabled="true" />
+		<intercept-url pattern="/auth" access="permitAll" />
+		<intercept-url pattern="/blocked.html" access="permitAll" />
+		<intercept-url pattern="/**" access="isAuthenticated()" />
+		<form-login login-page="/blocked.html" login-processing-url="/auth"
+			username-parameter="type"
+			password-parameter="value"
+			authentication-success-forward-url="/success.jsp"
+			authentication-failure-forward-url="/blocked.html" />
+	</http>
+	
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.TokenService"
+		name="tokenService" />
+
+
+	<authentication-manager>
+		<authentication-provider user-service-ref="tokenService" />
+	</authentication-manager>
+
+</beans:beans>

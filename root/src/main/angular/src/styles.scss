@@ -1,0 +1,56 @@
+
+.modal-backdrop {
+    opacity: 0.3
+  }
+  
+  #content {
+      width: calc(100% - 20px);
+      padding-left: 10px;
+      padding-right: 10px;
+  }
+  
+  body {
+      margin: 0px;
+      font-family: Verdana,Arial,sans-serif;
+  }
+  
+  nav.navbar {
+      background-color: rgb(0,194,239) !important;
+      background-image: none !important;
+  }
+  
+  
+  @media(min-width: 576px) {
+      .modal-huge, .modal-full-screen {
+          max-width: 95% !important;
+          height: 90% !important;
+      }
+      .modal-huge div.modal-content, .modal-full-screen div.modal-content {
+          height: 100% !important;
+      }
+  }
+  @media(min-width: 992px) {
+      .modal-huge {
+          max-width: 80% !important;
+          height: 90% !important;
+      }
+      .modal-full-screen {
+          max-width: 95% !important;
+          height: 90% !important;
+      }
+  
+      .modal-huge div.modal-content, .modal-full-screen div.modal-content {
+          height: 100% !important;
+      }
+  }
+  span.col-1 {
+      padding-left: 0px;
+      padding-right: 0px;
+  }
+  
+  fieldset  {
+    .form-group:first-child{
+      margin-top: 15px !important;
+    }
+  }
+  
