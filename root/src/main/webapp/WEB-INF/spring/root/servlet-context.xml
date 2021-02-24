@@ -25,6 +25,9 @@
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
 		<beans:property name="maxSessionsPerDay" value="${max-sessions-per-day:5}" />
 		<beans:property name="maxSessionsPerHour" value="${max-sessions-per-hour:3}" />
+		<beans:property name="maxLoginAttemptsPerSession" value="${max-attempts-per-session:3}" />
+		<beans:property name="sessionDurationInHours" value="${session-duration-in-hours:72}" />
+		<beans:property name="secure" value="${https-enabled:true}" />
 	</beans:bean>
 	
 

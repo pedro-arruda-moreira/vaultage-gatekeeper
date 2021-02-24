@@ -20,5 +20,9 @@ public class ObjectFactory {
 	public static AtomicInteger buildAtomicInteger(int value) {
 		return new AtomicInteger(value);
 	}
+	
+	public static <T> ThreadLocal<T> buildThreadLocal() {
+		return new ThreadLocal<>();
+	}
 
 }

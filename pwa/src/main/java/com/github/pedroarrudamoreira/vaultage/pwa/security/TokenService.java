@@ -10,22 +10,24 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
-import com.github.pedroarrudamoreira.vaultage.pwa.security.listener.SecurityListener;
+import com.github.pedroarrudamoreira.vaultage.listener.RequestHolderListener;
 
 public class TokenService implements UserDetailsService {
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String userPassword;
-		String providedToken = SecurityListener.getToken();
+		String providedToken = RequestHolderListener.getCurrentRequest().getParameter("value");
 		if(TokenManager.isTokenValid(providedToken)) {
+			TokenManager.removeToken(providedToken);
 			userPassword = providedToken;
 		} else {
 			userPassword = UUID.randomUUID().toString();
 		}
+		userPassword = ("token".equals(username) ? userPassword : UUID.randomUUID(
+				).toString());
 		return new User(
-				("token".equals(username) ? username : UUID.randomUUID().toString()),
-				"{noop}" + userPassword, true, true, true, true,
+				username, "{noop}" + userPassword, true, true, true, true,
 				Arrays.asList(new SimpleGrantedAuthority("role1")));
 	}
 

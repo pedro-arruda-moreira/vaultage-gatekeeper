@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 public final class TokenManager {
@@ -28,6 +29,9 @@ public final class TokenManager {
 	}
 	
 	public static boolean isTokenValid(String uuid) {
+		if(StringUtils.isBlank(uuid)) {
+			return false;
+		}
 		return new File(TOKEN_DIR, uuid).exists();
 	}
 	
