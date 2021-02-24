@@ -15,7 +15,7 @@
 		<form-login login-page="/blocked.html" login-processing-url="/auth"
 			username-parameter="type"
 			password-parameter="value"
-			authentication-success-forward-url="/success.jsp"
+			authentication-success-forward-url="/success.html"
 			authentication-failure-forward-url="/blocked.html" />
 	</http>
 	
