@@ -1,10 +1,17 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
+import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
+import javax.servlet.ServletResponse;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -22,7 +29,9 @@ import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 import lombok.Setter;
 
 public class SessionController implements HttpSessionListener, ServletContextAware,
-	ServletRequestListener {
+	ServletRequestListener, Filter {
+	
+	private static final String LOGGED_ON_KEY = "__logged_on__$$";
 	
 	private static final String LOGIN_ATTEMPTS_REMAINING = "login_attempts_remaining";
 
@@ -107,7 +116,9 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 
 	@Override
 	public void setServletContext(ServletContext servletContext) {
-		servletContext.addListener(SessionController.class);
+		servletContext.addListener(this);
+		servletContext.addFilter("SessionControllerFilter",
+				this).addMappingForUrlPatterns(null, true, "/*");
 		servletContext.setSessionTimeout(sessionDurationInHours * ONE_HOUR_MINUTES);
 		SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
 		sessionCookieConfig.setMaxAge(sessionDurationInHours * ONE_HOUR_SECONDS);
@@ -122,14 +133,20 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 			session.invalidate();
 			throw new UndeclaredThrowableException(new SecurityException());
 		}
-		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-		if(auth != null && auth.isAuthenticated()) {
+		if(Boolean.parseBoolean(Objects.toString(session.getAttribute(LOGGED_ON_KEY)))) {
 			return;
 		}
 		AtomicInteger attempts = (AtomicInteger) session.getAttribute(LOGIN_ATTEMPTS_REMAINING);
 		if(attempts.addAndGet(-1) < 0) {
 			session.invalidate();
 		}
+	}
+
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
+		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, "true");
+		chain.doFilter(request, response);
 	}
 	
 }

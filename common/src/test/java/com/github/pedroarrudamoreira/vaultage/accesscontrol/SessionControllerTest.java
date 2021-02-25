@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
@@ -20,14 +21,11 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -35,9 +33,8 @@ import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 @RunWith(PowerMockRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ObjectFactory.class, ThreadControl.class, SecurityContextHolder.class})
+@PrepareForTest({ObjectFactory.class, ThreadControl.class})
 @PowerMockRunnerDelegate(JUnit4.class)
-@PowerMockIgnore({"javax.security.*"})
 public class SessionControllerTest {
 
 	@Mock
@@ -51,9 +48,9 @@ public class SessionControllerTest {
 
 	@Mock
 	private HttpServletRequest httpServletRequestMock;
-
+	
 	@Mock
-	private Authentication authenticationMock;
+	private Dynamic filterRegistrationMock;
 
 	@Mock
 	private SecurityContext securityContextMock;
@@ -104,8 +101,6 @@ public class SessionControllerTest {
 		impl.setMaxLoginAttemptsPerSession(3);
 		impl.setMaxLoginAttemptsPerSession(2);
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
-		PowerMockito.when(SecurityContextHolder.getContext()).thenReturn(securityContextMock);
-		Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
 	}
 	@Test
 	public void test000CheckThreadCreation() {
@@ -166,15 +161,18 @@ public class SessionControllerTest {
 
 	@Test
 	public void test005ContextAware() {
+		Mockito.when(servletContextMock.addFilter(Mockito.anyString(),
+				Mockito.eq(impl))).thenReturn(filterRegistrationMock);
 		Mockito.when(servletContextMock.getSessionCookieConfig()).thenReturn(
 				sessionCookieConfigMock);
 		impl.setSessionDurationInHours(1);
 		impl.setSecure(false);
 		impl.setServletContext(servletContextMock);
-		Mockito.verify(servletContextMock).addListener(SessionController.class);
+		Mockito.verify(servletContextMock).addListener(impl);
 		Mockito.verify(servletContextMock).setSessionTimeout(60);
 		Mockito.verify(sessionCookieConfigMock).setSecure(false);
 		Mockito.verify(sessionCookieConfigMock).setMaxAge(3600);
+		Mockito.verify(filterRegistrationMock).addMappingForUrlPatterns(null, true, "/*");
 	}
 
 	@Test
@@ -182,7 +180,6 @@ public class SessionControllerTest {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
-		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
 		configureAttempts(attempts);
 		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 		impl.setSecure(false);
@@ -200,7 +197,6 @@ public class SessionControllerTest {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
-		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
 		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(false);
 		configureAttempts(attempts);
 		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
@@ -221,7 +217,6 @@ public class SessionControllerTest {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
-		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
 		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(true);
 		configureAttempts(attempts);
 		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
@@ -237,8 +232,8 @@ public class SessionControllerTest {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
-		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(true);
 		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(true);
+		Mockito.when(httpSessionMock.getAttribute("__logged_on__$$")).thenReturn("true");
 		configureAttempts(attempts);
 		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 		impl.setSecure(true);
