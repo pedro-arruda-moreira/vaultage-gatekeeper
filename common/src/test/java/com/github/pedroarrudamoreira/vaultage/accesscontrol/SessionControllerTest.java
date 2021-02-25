@@ -3,6 +3,9 @@ package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletContext;
+import javax.servlet.ServletRequestEvent;
+import javax.servlet.SessionCookieConfig;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 
@@ -17,10 +20,14 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -28,15 +35,28 @@ import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 @RunWith(PowerMockRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ObjectFactory.class, ThreadControl.class})
+@PrepareForTest({ObjectFactory.class, ThreadControl.class, SecurityContextHolder.class})
 @PowerMockRunnerDelegate(JUnit4.class)
+@PowerMockIgnore({"javax.security.*"})
 public class SessionControllerTest {
 
 	@Mock
-	private HttpSession sessionMock;
+	private HttpSession httpSessionMock;
 
 	@Mock
 	private ServletContext servletContextMock;
+
+	@Mock
+	private SessionCookieConfig sessionCookieConfigMock;
+
+	@Mock
+	private HttpServletRequest httpServletRequestMock;
+
+	@Mock
+	private Authentication authenticationMock;
+
+	@Mock
+	private SecurityContext securityContextMock;
 
 	private SessionController impl;
 
@@ -81,6 +101,11 @@ public class SessionControllerTest {
 	public void setup() throws Exception {
 		setupStatic();
 		impl = new SessionController();
+		impl.setMaxLoginAttemptsPerSession(3);
+		impl.setMaxLoginAttemptsPerSession(2);
+		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
+		PowerMockito.when(SecurityContextHolder.getContext()).thenReturn(securityContextMock);
+		Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
 	}
 	@Test
 	public void test000CheckThreadCreation() {
@@ -100,15 +125,15 @@ public class SessionControllerTest {
 
 	@Test
 	public void test002CreateSessionsExpireHour() {
-		impl.sessionCreated(new HttpSessionEvent(sessionMock));
-		impl.sessionCreated(new HttpSessionEvent(sessionMock));
-		impl.sessionCreated(new HttpSessionEvent(sessionMock));
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 		try {
-			impl.sessionCreated(new HttpSessionEvent(sessionMock));
+			impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 			Assert.fail("exception expected.");
 		} catch (UndeclaredThrowableException e1) {
-			Mockito.verify(sessionMock).invalidate();
-			Assert.assertEquals(IllegalAccessException.class, e1.getCause().getClass());
+			Mockito.verify(httpSessionMock).invalidate();
+			Assert.assertEquals(SecurityException.class, e1.getCause().getClass());
 		}
 	}
 
@@ -119,35 +144,128 @@ public class SessionControllerTest {
 			obtainedRunnable.run();
 			Assert.fail("did not stop");
 		} catch (Stop e) {
-			impl.sessionCreated(new HttpSessionEvent(sessionMock));
+			impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 			try {
-				impl.sessionCreated(new HttpSessionEvent(sessionMock));
+				impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 				Assert.fail("exception expected.");
 			} catch (UndeclaredThrowableException e1) {
-				Mockito.verify(sessionMock).invalidate();
-				Assert.assertEquals(IllegalAccessException.class, e1.getCause().getClass());
+				Mockito.verify(httpSessionMock).invalidate();
+				Assert.assertEquals(SecurityException.class, e1.getCause().getClass());
 			}
 		}
 	}
 
 	@Test
 	public void test004NewDay() {
-		try {
-			sleepCount = 24;
-			obtainedRunnable.run();
-			Assert.fail("did not stop");
-		} catch (Stop e) {
-			impl.sessionCreated(new HttpSessionEvent(sessionMock));
-			impl.sessionCreated(new HttpSessionEvent(sessionMock));
-			Mockito.verify(sessionMock, Mockito.never()).invalidate();
-		}
+		resetAttempts();
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		Mockito.verify(httpSessionMock, Mockito.never()).invalidate();
 	}
 
 
 	@Test
 	public void test005ContextAware() {
+		Mockito.when(servletContextMock.getSessionCookieConfig()).thenReturn(
+				sessionCookieConfigMock);
+		impl.setSessionDurationInHours(1);
+		impl.setSecure(false);
 		impl.setServletContext(servletContextMock);
 		Mockito.verify(servletContextMock).addListener(SessionController.class);
+		Mockito.verify(servletContextMock).setSessionTimeout(60);
+		Mockito.verify(sessionCookieConfigMock).setSecure(false);
+		Mockito.verify(sessionCookieConfigMock).setMaxAge(3600);
+	}
+
+	@Test
+	public void test006AttemptsPerSession() {
+
+		resetAttempts();
+		AtomicInteger[] attempts = new AtomicInteger[1];
+		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
+		configureAttempts(attempts);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.setSecure(false);
+		ServletRequestEvent sre = new ServletRequestEvent(
+				servletContextMock, httpServletRequestMock);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		Mockito.verify(httpSessionMock).invalidate();
+
+	}
+	@Test
+	public void test007SecureWithNonSecureRequest() {
+
+		resetAttempts();
+		AtomicInteger[] attempts = new AtomicInteger[1];
+		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
+		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(false);
+		configureAttempts(attempts);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.setSecure(true);
+		ServletRequestEvent sre = new ServletRequestEvent(
+				servletContextMock, httpServletRequestMock);
+		try {
+			impl.requestInitialized(sre);
+			Assert.fail("expected exception.");
+		} catch (UndeclaredThrowableException e) {
+			Mockito.verify(httpSessionMock).invalidate();
+			Assert.assertEquals(SecurityException.class, e.getCause().getClass());
+		}
+
+	}
+	@Test
+	public void test007SecureWithSecureRequest() {
+
+		resetAttempts();
+		AtomicInteger[] attempts = new AtomicInteger[1];
+		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(false);
+		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(true);
+		configureAttempts(attempts);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.setSecure(true);
+		ServletRequestEvent sre = new ServletRequestEvent(
+				servletContextMock, httpServletRequestMock);
+		impl.requestInitialized(sre);
+		Assert.assertEquals(2, attempts[0].intValue());
+
+	}
+	@Test
+	public void test008AlreadyAuthenticated() {
+
+		resetAttempts();
+		AtomicInteger[] attempts = new AtomicInteger[1];
+		Mockito.when(authenticationMock.isAuthenticated()).thenReturn(true);
+		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(true);
+		configureAttempts(attempts);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.setSecure(true);
+		ServletRequestEvent sre = new ServletRequestEvent(
+				servletContextMock, httpServletRequestMock);
+		impl.requestInitialized(sre);
+		Assert.assertEquals(3, attempts[0].intValue());
+
+	}
+
+	private void configureAttempts(AtomicInteger[] attempts) {
+		Mockito.doAnswer((inv) -> {
+			attempts[0] = inv.getArgument(1, AtomicInteger.class);
+			return null;
+		}).when(httpSessionMock).setAttribute(Mockito.eq("login_attempts_remaining"),
+				Mockito.any());
+		Mockito.when(httpSessionMock.getAttribute(
+				"login_attempts_remaining")).then(inv -> attempts[0]);
+	}
+
+	private void resetAttempts() {
+		try {
+			sleepCount = 24;
+			obtainedRunnable.run();
+			Assert.fail("did not stop");
+		} catch (Stop e) {
+		}
 	}
 
 
