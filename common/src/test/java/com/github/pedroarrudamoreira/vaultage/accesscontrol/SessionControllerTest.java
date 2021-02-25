@@ -217,7 +217,7 @@ public class SessionControllerTest {
 
 	}
 	@Test
-	public void test007SecureWithSecureRequest() {
+	public void test008SecureWithSecureRequest() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
@@ -233,7 +233,7 @@ public class SessionControllerTest {
 
 	}
 	@Test
-	public void test008AlreadyAuthenticated() {
+	public void test009AlreadyAuthenticated() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
