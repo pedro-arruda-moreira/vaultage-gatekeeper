@@ -1,8 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.root.servlet;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 import javax.servlet.RequestDispatcher;
@@ -12,17 +10,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.web.context.ServletContextAware;
 
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
-
 import lombok.AccessLevel;
-import lombok.Cleanup;
 import lombok.Getter;
 import lombok.Setter;
 
-public class MobileServlet extends HttpServlet implements ServletContextAware {
+public class ChannelDecidingServlet extends HttpServlet implements ServletContextAware {
 
 	/**
 	 * 
@@ -40,6 +34,10 @@ public class MobileServlet extends HttpServlet implements ServletContextAware {
 			"/mobile.jsp");
 
 	private Pattern mobilePattern;
+	
+	public void setMobilePattern(String mobilePattern) {
+		this.mobilePattern = Pattern.compile(mobilePattern);
+	}
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -50,18 +48,6 @@ public class MobileServlet extends HttpServlet implements ServletContextAware {
 			getMobileDispatcher().forward(req, resp);
 		} else {
 			getVaultageCliDispatcher().forward(req, resp);
-		}
-	}
-
-	@Override
-	public void init() {
-		try {
-			Properties prop = ObjectFactory.buildProperties();
-			@Cleanup InputStream is = MobileServlet.class.getResourceAsStream("mobile.properties");
-			prop.load(is);
-			mobilePattern = Pattern.compile(prop.getProperty("hints"));
-		} catch (Exception e) {
-			throw new UndeclaredThrowableException(e);
 		}
 	}
 

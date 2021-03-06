@@ -23,15 +23,17 @@
 			<hsts/>
 			<xss-protection/>
 		</headers>
+		<custom-filter ref="sessionController" after="LAST"/>
 	</http>
 	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
 	
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.TokenService"
 		name="tokenService" />
 
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-		<beans:property name="sessionDurationInHours" value="${session-duration-in-hours:72}" />
-		<beans:property name="secure" value="${https-enabled:true}" />
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController"
+		id="sessionController">
+		<beans:property name="sessionDurationInHours" value="${security.session-duration-in-hours:72}" />
+		<beans:property name="secure" value="${security.https-enabled:true}" />
 	</beans:bean>
 
 	<authentication-manager>

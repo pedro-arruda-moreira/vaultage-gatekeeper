@@ -11,30 +11,61 @@
 		<csrf disabled="true"/>
 		<intercept-url pattern="/**" access="isAuthenticated()" />
 		<http-basic />
+		<custom-filter ref="compositeFilter" after="LAST"/>
 	</http>
 	
 	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
 	
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.listener.Starter">
-		<beans:property name="users" value="${users}" />
-		<beans:property name="port" value="${port:3000}" />
+		<beans:property name="users" value="${vaultage.users}" />
+		<beans:property name="port" value="${vaultage.port:3000}" />
 	</beans:bean>
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.MobileServlet"
-		id="mobileServlet">
+	
+	<beans:bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
+		<beans:property name="filters">
+			<beans:list>
+				<beans:bean
+					class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.TwoFactorAuthFilter">
+					<beans:property name="enabled" value="${2fa.enabled:#{false}}"/>
+					<beans:property name="useAuth" value="${2fa.use_auth:#{false}}"/>
+					<beans:property name="debug" value="#{false}"/>
+					<beans:property name="smtpHost" value="${2fa.server_host:#{null}}"/>
+					<beans:property name="smtpPort" value="${2fa.server_port:#{null}}"/>
+					<beans:property name="smtpUsername" value="${2fa.username:#{null}}"/>
+					<beans:property name="addressToSend" value="${2fa.address:#{null}}"/>
+					<beans:property name="password" value="${2fa.server_password:#{null}}"/>
+					<beans:property name="thisServerHost" value="${server.host}"/>
+					<beans:property name="useStartTls" value="${2fa.use_start_tls:#{true}}"/>
+				</beans:bean>
+	
+				<beans:bean
+					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
+					<beans:property name="maxSessionsPerDay"
+						value="${security.max-sessions-per-day:7}" />
+					<beans:property name="maxSessionsPerHour"
+						value="${security.max-sessions-per-hour:5}" />
+					<beans:property name="maxLoginAttemptsPerSession"
+						value="${security.max-attempts-per-session:3}" />
+					<beans:property name="sessionDurationInHours"
+						value="${security.session-duration-in-hours:72}" />
+					<beans:property name="secure" value="${security.https-enabled:true}" />
+				</beans:bean>
+			</beans:list>
+		</beans:property>
 	</beans:bean>
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-		<beans:property name="maxSessionsPerDay" value="${max-sessions-per-day:7}" />
-		<beans:property name="maxSessionsPerHour" value="${max-sessions-per-hour:5}" />
-		<beans:property name="maxLoginAttemptsPerSession" value="${max-attempts-per-session:3}" />
-		<beans:property name="sessionDurationInHours" value="${session-duration-in-hours:72}" />
-		<beans:property name="secure" value="${https-enabled:true}" />
+	
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.ChannelDecidingServlet"
+		id="channelDecidingServlet">
+		<beans:property name="mobilePattern"
+			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
 	</beans:bean>
+	
 	
 
 	<authentication-manager>
 		<authentication-provider>
 			<user-service>
-				<user name="${basic_user}" password="{noop}${basic_password}"
+				<user name="${security.basic_user}" password="{noop}${security.basic_password}"
 					authorities="ROLE_USER" />
 			</user-service>
 		</authentication-provider>

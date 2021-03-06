@@ -19,8 +19,6 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -117,8 +115,6 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	@Override
 	public void setServletContext(ServletContext servletContext) {
 		servletContext.addListener(this);
-		servletContext.addFilter("SessionControllerFilter",
-				this).addMappingForUrlPatterns(null, true, "/*");
 		servletContext.setSessionTimeout(sessionDurationInHours * ONE_HOUR_MINUTES);
 		SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
 		sessionCookieConfig.setMaxAge(sessionDurationInHours * ONE_HOUR_SECONDS);

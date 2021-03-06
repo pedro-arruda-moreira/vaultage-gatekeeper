@@ -2,7 +2,6 @@ package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
@@ -48,9 +47,6 @@ public class SessionControllerTest {
 
 	@Mock
 	private HttpServletRequest httpServletRequestMock;
-	
-	@Mock
-	private Dynamic filterRegistrationMock;
 
 	@Mock
 	private SecurityContext securityContextMock;
@@ -161,18 +157,14 @@ public class SessionControllerTest {
 
 	@Test
 	public void test005ContextAware() {
-		Mockito.when(servletContextMock.addFilter(Mockito.anyString(),
-				Mockito.eq(impl))).thenReturn(filterRegistrationMock);
 		Mockito.when(servletContextMock.getSessionCookieConfig()).thenReturn(
 				sessionCookieConfigMock);
 		impl.setSessionDurationInHours(1);
 		impl.setSecure(false);
 		impl.setServletContext(servletContextMock);
-		Mockito.verify(servletContextMock).addListener(impl);
 		Mockito.verify(servletContextMock).setSessionTimeout(60);
 		Mockito.verify(sessionCookieConfigMock).setSecure(false);
 		Mockito.verify(sessionCookieConfigMock).setMaxAge(3600);
-		Mockito.verify(filterRegistrationMock).addMappingForUrlPatterns(null, true, "/*");
 	}
 
 	@Test

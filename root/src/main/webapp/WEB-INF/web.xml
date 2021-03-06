@@ -5,7 +5,7 @@
 	version="3.0">
 	<display-name>vaultage-web-app-root</display-name>
 	<welcome-file-list>
-		<welcome-file>mobile</welcome-file>
+		<welcome-file>select-channel</welcome-file>
 	</welcome-file-list>
 	
 	<error-page>
@@ -43,12 +43,12 @@
 	</filter-mapping>
 	
 	<servlet>
-		<servlet-name>mobileServlet</servlet-name>
+		<servlet-name>channelDecidingServlet</servlet-name>
 		<servlet-class>com.github.pedroarrudamoreira.vaultage.spring.servlet.DelegatingServlet</servlet-class>
 	</servlet>
 	<servlet-mapping>
-		<servlet-name>mobileServlet</servlet-name>
-		<url-pattern>/mobile</url-pattern>
+		<servlet-name>channelDecidingServlet</servlet-name>
+		<url-pattern>/select-channel</url-pattern>
 	</servlet-mapping>
 
 	<servlet>
