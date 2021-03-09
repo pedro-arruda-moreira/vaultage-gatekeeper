@@ -13,7 +13,6 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.RequestDispatcher;
@@ -38,10 +37,23 @@ import lombok.Getter;
 import lombok.Setter;
 @Setter
 public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletContextAware {
-	private static final String ALREADY_VALIDATED_KEY = TwoFactorAuthFilter.class.getName() + ".ALL_OK";
+	static final String EMAIL_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
+	static final String MAIL_USER_KEY = "mail.from";
+	static final String EMAIL_PASSWORD_REQUEST_KEY = "email_password";
+	static final String USE_START_TLS_KEY = "mail.smtp.starttls.enable";
+	static final String SMTP_PORT_KEY = "mail.smtp.port";
+	static final String USE_AUTH_KEY = "mail.smtp.auth";
+	static final String DEFAULT_SOCKET_FACTORY = "javax.net.ssl.SSLSocketFactory";
+	static final String SOCKET_FACTORY_CLASS_KEY = "mail.smtp.socketFactory.class";
+	static final String SOCKET_FACTORY_PORT_KEY = "mail.smtp.socketFactory.port";
+	static final String SMTP_HOST_KEY = "mail.smtp.host";
+	static final String ALREADY_VALIDATED_KEY = TwoFactorAuthFilter.class.getName() + ".ALL_OK";
+	static final String CHECK_EMAIL_HTML_LOCATION = "/2fa/email/check_email.html";
+	static final String PASSWORD_HTML_LOCATION = "/2fa/email/password.html";
+	static final String EMAIL_TEMPLATE_JSP_LOCATION = "/2fa/email/email_template.jsp";
 	public static final String LINK_REQUEST_KEY = "__EMAIL_LINK_%%$$";
-	private static final String EMAIL_TOKEN_KEY = "email_token";
-	private static final String EMAIL_SENT_KEY = "__EMAIL_SENT_%%$$";
+	static final String EMAIL_TOKEN_KEY = "email_token";
+	static final String EMAIL_SENT_KEY = "__EMAIL_SENT_%%$$";
 	private boolean enabled;
 	private boolean useAuth;
 	private boolean debug;
@@ -64,15 +76,15 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 	private ServletContext servletContext;
 	@Getter(lazy = true, value = AccessLevel.PRIVATE)
 	private final RequestDispatcher emailPasswordDispatcher = servletContext.getRequestDispatcher(
-			"/2fa/email/password.html");
+			PASSWORD_HTML_LOCATION);
 
 	@Getter(lazy = true, value = AccessLevel.PRIVATE)
 	private final RequestDispatcher checkEmailDispatcher = servletContext.getRequestDispatcher(
-			"/2fa/email/check_email.html");
+			CHECK_EMAIL_HTML_LOCATION);
 
 	@Getter(lazy = true, value = AccessLevel.PRIVATE)
 	private final RequestDispatcher emailTemplateDispatcher = servletContext.getRequestDispatcher(
-			"/2fa/email/email_template.jsp");
+			EMAIL_TEMPLATE_JSP_LOCATION);
 
 
 	@Override
@@ -112,8 +124,8 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 			if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
 				String emailToken = TokenManager.generateNewToken();
 
-				Message message = new MimeMessage(emailSession);
-				message.setFrom(new InternetAddress(smtpUsername));
+				Message message = ObjectFactory.buildMimeMessage(emailSession);
+				message.setFrom();
 
 				Address[] toUser = InternetAddress.parse(addressToSend);
 
@@ -122,7 +134,7 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 				request.setAttribute(LINK_REQUEST_KEY, formatLinkAddress(request, emailToken));
 
 				StringWriter emailContent = extractEmailContent(request, response);
-				message.setContent(emailContent.toString(), "text/html;charset=ISO-8859-1");
+				message.setContent(emailContent.toString(), EMAIL_CONTENT_TYPE);
 				Transport.send(message);
 				httpSession.setAttribute(EMAIL_SENT_KEY, this);
 
@@ -136,7 +148,7 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 
 	private StringWriter extractEmailContent(HttpServletRequest request, ServletResponse response)
 			throws ServletException, IOException {
-		StringWriter emailContent = new StringWriter();
+		StringWriter emailContent = ObjectFactory.buildStringWriter();
 		PrintWriter wr = new PrintWriter(emailContent);
 
 		getEmailTemplateDispatcher().include(request, new EmailCollector(response, wr));
@@ -154,7 +166,7 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 	private boolean validateEmailPassword(ServletResponse response, HttpServletRequest request)
 			throws ServletException, IOException {
 		if(useAuth && password == null) {
-			String emailPass = request.getParameter("email_password");
+			String emailPass = request.getParameter(EMAIL_PASSWORD_REQUEST_KEY);
 			if(emailPass == null) {
 				getEmailPasswordDispatcher().forward(request, response);
 				return false;
@@ -175,7 +187,7 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 				}
 			};
 		}
-		Session session = Session.getDefaultInstance(emailProperties,
+		Session session = ObjectFactory.buildEmailSession(emailProperties,
 				authenticator);
 
 		session.setDebug(debug);
@@ -191,13 +203,13 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 			Assert.notNull(smtpUsername, "smtpUsername required.");
 			Assert.notNull(thisServerHost, "thisServerHost required.");
 			Properties props = ObjectFactory.buildProperties();
-			props.put("mail.smtp.host", smtpHost);
-			props.put("mail.smtp.socketFactory.port", smtpPort);
-			props.put("mail.smtp.socketFactory.class",
-					"javax.net.ssl.SSLSocketFactory");
-			props.put("mail.smtp.auth", String.valueOf(useAuth));
-			props.put("mail.smtp.port", smtpPort);
-			props.put("mail.smtp.starttls.enable", String.valueOf(useStartTls));
+			props.setProperty(SMTP_HOST_KEY, smtpHost);
+			props.setProperty(SMTP_PORT_KEY, smtpPort);
+			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);
+			props.setProperty(SOCKET_FACTORY_CLASS_KEY, DEFAULT_SOCKET_FACTORY);
+			props.setProperty(USE_AUTH_KEY, String.valueOf(useAuth));
+			props.setProperty(USE_START_TLS_KEY, String.valueOf(useStartTls));
+			props.setProperty(MAIL_USER_KEY, smtpUsername);
 			this.emailProperties = props;
 		}
 	}

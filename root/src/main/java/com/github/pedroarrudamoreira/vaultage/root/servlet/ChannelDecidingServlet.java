@@ -12,11 +12,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.context.ServletContextAware;
 
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 public class ChannelDecidingServlet extends HttpServlet implements ServletContextAware {
+
+	public static final String TOKEN_KEY = "token";
 
 	/**
 	 * 
@@ -44,7 +48,7 @@ public class ChannelDecidingServlet extends HttpServlet implements ServletContex
 		String userAgent = req.getHeader("User-Agent").toUpperCase();
 
 		if(mobilePattern.matcher(userAgent).matches()) {
-			req.setAttribute("use_basic", "true");
+			req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken());
 			getMobileDispatcher().forward(req, resp);
 		} else {
 			getVaultageCliDispatcher().forward(req, resp);

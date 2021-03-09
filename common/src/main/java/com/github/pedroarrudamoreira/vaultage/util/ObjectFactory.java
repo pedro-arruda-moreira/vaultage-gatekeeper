@@ -1,7 +1,12 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
+import java.io.StringWriter;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.mail.Authenticator;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 public class ObjectFactory {
 	
@@ -21,8 +26,16 @@ public class ObjectFactory {
 		return new AtomicInteger(value);
 	}
 	
-	public static <T> ThreadLocal<T> buildThreadLocal() {
-		return new ThreadLocal<>();
+	public static Session buildEmailSession(Properties properties, Authenticator authenticator) {
+		return Session.getDefaultInstance(properties, authenticator);
+	}
+	
+	public static MimeMessage buildMimeMessage(Session session) {
+		return new MimeMessage(session);
+	}
+	
+	public static StringWriter buildStringWriter() {
+		return new StringWriter();
 	}
 
 }

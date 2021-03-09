@@ -70,6 +70,11 @@ public class SessionControllerTest {
 
 	private static class Stop extends RuntimeException {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 	}
 	@BeforeClass
 	public static void setupStatic() throws Exception {
@@ -94,8 +99,8 @@ public class SessionControllerTest {
 	public void setup() throws Exception {
 		setupStatic();
 		impl = new SessionController();
-		impl.setMaxLoginAttemptsPerSession(3);
-		impl.setMaxLoginAttemptsPerSession(2);
+		SessionController.setMaxLoginAttemptsPerSession(3);
+		SessionController.setMaxLoginAttemptsPerSession(2);
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
 	}
 	@Test
@@ -106,10 +111,10 @@ public class SessionControllerTest {
 
 	@Test
 	public void test001DefineLimitsOnlyOnce() {
-		impl.setMaxSessionsPerDay(5);
-		impl.setMaxSessionsPerDay(6);
-		impl.setMaxSessionsPerHour(3);
-		impl.setMaxSessionsPerHour(4);
+		SessionController.setMaxSessionsPerDay(5);
+		SessionController.setMaxSessionsPerDay(6);
+		SessionController.setMaxSessionsPerHour(3);
+		SessionController.setMaxSessionsPerHour(4);
 		Assert.assertEquals(5, remainingPerDay.get());
 		Assert.assertEquals(3, remainingPerHour.get());
 	}

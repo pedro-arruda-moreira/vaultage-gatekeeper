@@ -18,6 +18,7 @@
 	</properties>
 
 	<modules>
+		<module>test-util</module>
 		<module>common</module>
 		<module>root</module>
 		<module>pwa</module>
@@ -31,27 +32,6 @@
 			<artifactId>lombok</artifactId>
 			<version>1.18.18</version>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.junit.vintage</groupId>
-			<artifactId>junit-vintage-engine</artifactId>
-			<version>5.7.1</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito2</artifactId>
-			<version>2.0.9</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>2.0.9</version>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
