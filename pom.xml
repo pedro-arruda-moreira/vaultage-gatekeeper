@@ -19,6 +19,7 @@
 
 	<modules>
 		<module>test-util</module>
+		<module>build-tools</module>
 		<module>common</module>
 		<module>root</module>
 		<module>pwa</module>
