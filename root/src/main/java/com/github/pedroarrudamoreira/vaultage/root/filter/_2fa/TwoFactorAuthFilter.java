@@ -13,7 +13,6 @@ import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -29,6 +28,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
 import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.util.EmailCollector;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -36,7 +36,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 @Setter
-public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletContextAware {
+public class TwoFactorAuthFilter extends SwitchingFilter implements InitializingBean, ServletContextAware {
 	static final String EMAIL_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
 	static final String MAIL_USER_KEY = "mail.from";
 	static final String EMAIL_PASSWORD_REQUEST_KEY = "email_password";
@@ -54,7 +54,6 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 	public static final String LINK_REQUEST_KEY = "__EMAIL_LINK_%%$$";
 	static final String EMAIL_TOKEN_KEY = "email_token";
 	static final String EMAIL_SENT_KEY = "__EMAIL_SENT_%%$$";
-	private boolean enabled;
 	private boolean useAuth;
 	private boolean debug;
 	private boolean useStartTls;
@@ -88,12 +87,8 @@ public class TwoFactorAuthFilter implements Filter, InitializingBean, ServletCon
 
 
 	@Override
-	public void doFilter(ServletRequest rq, ServletResponse response, FilterChain chain)
+	protected void doFilterImpl(ServletRequest rq, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		if(!enabled) {
-			chain.doFilter(rq, response);
-			return;
-		}
 		HttpServletRequest request = (HttpServletRequest) rq;
 		HttpSession httpSession = request.getSession();
 		if(httpSession.getAttribute(ALREADY_VALIDATED_KEY) != null) {

@@ -2,7 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.root.servlet;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.github.pedroarrudamoreira.vaultage.listener.RequestHolderListener;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 
 public class ProxyServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 
@@ -13,7 +13,7 @@ public class ProxyServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	
 	@Override
 	protected String rewritePathInfoFromRequest(HttpServletRequest servletRequest) {
-		return RequestHolderListener.getOriginalUrl();
+		return SessionController.getOriginalUrl();
 	}
 
 }

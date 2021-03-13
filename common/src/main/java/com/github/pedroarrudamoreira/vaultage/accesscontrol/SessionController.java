@@ -1,7 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.Filter;
@@ -29,7 +28,12 @@ import lombok.Setter;
 public class SessionController implements HttpSessionListener, ServletContextAware,
 	ServletRequestListener, Filter {
 	
-	private static final String LOGGED_ON_KEY = "__logged_on__$$";
+	static final String ORIGINAL_URL = ServletRequestListener.class.getCanonicalName()
+			+ "_originalRequest";
+	
+	static final String LOGGED_ON_KEY = "__logged_on__$$";
+	
+	private static final ThreadLocal<ServletRequest> REQUESTS = new ThreadLocal<>();
 	
 	private static final String LOGIN_ATTEMPTS_REMAINING = "login_attempts_remaining";
 
@@ -38,16 +42,16 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	private static final int ONE_HOUR_SECONDS = ONE_HOUR_MINUTES * 60;
 
 	private static final int ONE_HOUR_MILLIS = ONE_HOUR_SECONDS * 1000;
+	
+	private static final AtomicInteger REMAINING_HOUR_SESSIONS = ObjectFactory.buildAtomicInteger(500);
+	
+	private static final AtomicInteger REMAINING_DAY_SESSIONS = ObjectFactory.buildAtomicInteger(900);
 
 	private static int maxSessionsPerHour = -1;
 	
 	private static int maxSessionsPerDay = -1;
 
 	private static int maxLoginAttemptsPerSession = -1;
-	
-	private static final AtomicInteger REMAINING_HOUR_SESSIONS = ObjectFactory.buildAtomicInteger(500);
-	
-	private static final AtomicInteger REMAINING_DAY_SESSIONS = ObjectFactory.buildAtomicInteger(900);
 	static {
 		Thread cleanThread = ObjectFactory.buildThread(() -> {
 			int count = 0;
@@ -92,6 +96,15 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 		}
 		SessionController.maxLoginAttemptsPerSession = maxLoginRetryPerSession;
 	}
+
+	
+	public static HttpServletRequest getCurrentRequest() {
+		return (HttpServletRequest) REQUESTS.get();
+	}
+
+	public static String getOriginalUrl() {
+		return REQUESTS.get().getAttribute(ORIGINAL_URL).toString();
+	}
 	
 	@Setter
 	private int sessionDurationInHours;
@@ -124,12 +137,14 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	@Override
 	public void requestInitialized(ServletRequestEvent sre) {
 		HttpServletRequest request = (HttpServletRequest) sre.getServletRequest();
+		request.setAttribute(ORIGINAL_URL, request.getRequestURI());
+		REQUESTS.set(request);
 		HttpSession session = request.getSession();
 		if(secure && !request.isSecure()) {
 			session.invalidate();
 			throw new UndeclaredThrowableException(new SecurityException());
 		}
-		if(Boolean.parseBoolean(Objects.toString(session.getAttribute(LOGGED_ON_KEY)))) {
+		if(session.getAttribute(LOGGED_ON_KEY) != null) {
 			return;
 		}
 		AtomicInteger attempts = (AtomicInteger) session.getAttribute(LOGIN_ATTEMPTS_REMAINING);
@@ -137,11 +152,16 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 			session.invalidate();
 		}
 	}
+	
+	@Override
+	public void requestDestroyed(ServletRequestEvent sre) {
+		REQUESTS.remove();
+	}
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, "true");
+		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, this);
 		chain.doFilter(request, response);
 	}
 	

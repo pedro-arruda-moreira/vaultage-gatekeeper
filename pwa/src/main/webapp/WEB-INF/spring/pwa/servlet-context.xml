@@ -7,7 +7,7 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<http use-expressions="true" >
+	<http use-expressions="true">
 		<csrf disabled="true" />
 		<intercept-url pattern="/auth" access="permitAll" />
 		<intercept-url pattern="/blocked.html" access="permitAll" />
@@ -15,7 +15,7 @@
 		<form-login login-page="/blocked.html" login-processing-url="/auth"
 			username-parameter="type"
 			password-parameter="value"
-			authentication-success-forward-url="/success.html"
+			authentication-success-forward-url="/success.jsp"
 			authentication-failure-forward-url="/blocked.html" />
 		<headers>
 			<cache-control disabled="true"/>
@@ -23,12 +23,25 @@
 			<hsts/>
 			<xss-protection/>
 		</headers>
+		<custom-filter ref="disableSecurity" before="FIRST"/>
 		<custom-filter ref="sessionController" after="LAST"/>
 	</http>
 	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
 	
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.TokenService"
-		name="tokenService" />
+		name="tokenService">
+		<beans:property name="cryptoType" value="${mobile.crypto_type:offline}"/>
+	</beans:bean>
+		
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.filter.DisableSecurityFilter"
+		id="disableSecurity">
+		<beans:property name="enabled" value="${mobile.security_disabled:false}"/>
+	</beans:bean>
+	
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.servlet.crypto.OnlineCryptoServlet"
+		id="onlineCryptoServlet">
+		<beans:property name="attempts" value="${mobile.online_pin_attempts:5}"/>
+	</beans:bean>
 
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController"
 		id="sessionController">

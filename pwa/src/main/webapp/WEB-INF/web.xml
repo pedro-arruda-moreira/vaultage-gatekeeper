@@ -16,10 +16,6 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 	
-	<listener>
-		<listener-class>com.github.pedroarrudamoreira.vaultage.listener.RequestHolderListener</listener-class>
-	</listener>
-	
 	<session-config>
 		<cookie-config>
 			<http-only>true</http-only>
@@ -36,6 +32,16 @@
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
+	
+	<servlet>
+		<servlet-name>onlineCryptoServlet</servlet-name>
+		<servlet-class>com.github.pedroarrudamoreira.vaultage.spring.servlet.DelegatingServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>onlineCryptoServlet</servlet-name>
+		<url-pattern>/api/crypto</url-pattern>
+	</servlet-mapping>
+	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>WEB-INF/spring/pwa/servlet-context.xml</param-value>

@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
@@ -50,6 +51,9 @@ public class SessionControllerTest {
 
 	@Mock
 	private SecurityContext securityContextMock;
+	
+	@Mock
+	private FilterChain filterChainMock;
 
 	private SessionController impl;
 
@@ -215,6 +219,10 @@ public class SessionControllerTest {
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
 		Mockito.when(httpServletRequestMock.isSecure()).thenReturn(true);
+		final String fakeUrl = "url";
+		Mockito.when(httpServletRequestMock.getRequestURI()).thenReturn(fakeUrl);
+		Mockito.when(httpServletRequestMock.getAttribute(
+				SessionController.ORIGINAL_URL)).thenReturn(fakeUrl);
 		configureAttempts(attempts);
 		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 		impl.setSecure(true);
@@ -222,6 +230,8 @@ public class SessionControllerTest {
 				servletContextMock, httpServletRequestMock);
 		impl.requestInitialized(sre);
 		Assert.assertEquals(2, attempts[0].intValue());
+		Assert.assertEquals(httpServletRequestMock, SessionController.getCurrentRequest());
+		Assert.assertEquals(fakeUrl, SessionController.getOriginalUrl());
 
 	}
 	@Test
@@ -239,6 +249,19 @@ public class SessionControllerTest {
 		impl.requestInitialized(sre);
 		Assert.assertEquals(3, attempts[0].intValue());
 
+	}
+	
+	@Test
+	public void test010RequestDestroyed() {
+		impl.requestDestroyed(new ServletRequestEvent(servletContextMock, httpServletRequestMock));
+		Assert.assertNull(SessionController.getCurrentRequest());
+	}
+	
+	@Test
+	public void test011LoginSuccessful() throws Exception {
+		impl.doFilter(httpServletRequestMock, null, filterChainMock);
+		Mockito.verify(httpSessionMock).setAttribute(SessionController.LOGGED_ON_KEY, impl);
+		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, null);
 	}
 
 	private void configureAttempts(AtomicInteger[] attempts) {

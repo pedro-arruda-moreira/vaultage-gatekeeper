@@ -21,10 +21,6 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 	
-	<listener>
-		<listener-class>com.github.pedroarrudamoreira.vaultage.listener.RequestHolderListener</listener-class>
-	</listener>
-	
 	<session-config>
 		<cookie-config>
 			<http-only>true</http-only>
