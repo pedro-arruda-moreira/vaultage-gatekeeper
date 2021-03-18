@@ -1,42 +1,41 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.EnumMap;
+import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.GlobalTokenSupplier;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.ITokenSupplier;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.SessionTokenSupplier;
 
 public final class TokenManager {
-
-	private static final File TOKEN_DIR = new File(new File(SystemUtils.USER_HOME),
-			".vaultage_web_app_pwa_tokens");
-
-	static {
-		if(!TOKEN_DIR.exists() && !TOKEN_DIR.mkdirs()) {
-			throw new IllegalStateException("could not create token dir!");
-		}
-	}
 	
+	private static final Map<TokenType, ITokenSupplier> SUPPLIERS;
+	
+	static {
+		SUPPLIERS = new EnumMap<>(TokenType.class);
+		SUPPLIERS.put(TokenType.GLOBAL, new GlobalTokenSupplier());
+		SUPPLIERS.put(TokenType.SESSION, new SessionTokenSupplier());
+	}
 	private TokenManager() {
 		super();
 	}
 
-	public static String generateNewToken() throws IOException {
-		String uuid = UUID.randomUUID().toString();
-		new File(TOKEN_DIR, uuid).createNewFile();
-		return uuid;
+	public static String generateNewToken(TokenType type) throws IOException {
+		return SUPPLIERS.get(type).generateNewToken();
 	}
 	
-	public static boolean isTokenValid(String uuid) {
-		if(StringUtils.isBlank(uuid)) {
-			return false;
-		}
-		return new File(TOKEN_DIR, uuid).exists();
+	public static boolean isTokenValid(String uuid, TokenType type) {
+		return SUPPLIERS.get(type).isTokenValid(uuid);
 	}
 	
 	public static boolean removeToken(String uuid) {
-		return new File(TOKEN_DIR, uuid).delete();
+		for(ITokenSupplier current : SUPPLIERS.values()) {
+			if(current.removeToken(uuid)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

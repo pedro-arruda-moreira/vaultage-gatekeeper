@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -48,7 +49,7 @@ public class ChannelDecidingServlet extends HttpServlet implements ServletContex
 		String userAgent = req.getHeader("User-Agent").toUpperCase();
 
 		if(mobilePattern.matcher(userAgent).matches()) {
-			req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken());
+			req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken(TokenType.GLOBAL));
 			getMobileDispatcher().forward(req, resp);
 		} else {
 			getVaultageCliDispatcher().forward(req, resp);

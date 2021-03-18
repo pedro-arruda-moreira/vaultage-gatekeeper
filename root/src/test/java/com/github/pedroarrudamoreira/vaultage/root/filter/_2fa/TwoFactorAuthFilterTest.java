@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.root.filter._2fa;
 
 import java.io.StringWriter;
 import java.util.Properties;
+import java.util.UUID;
 
 import javax.mail.Authenticator;
 import javax.mail.AuthenticatorAccessor;
@@ -28,6 +29,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
+import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.ssl.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -74,6 +77,9 @@ public class TwoFactorAuthFilterTest {
 	@Mock
 	private MimeMessage mimeMessageMock;
 	
+	@Mock
+	private EasySSLSocketFactory mockSslFactory;
+	
 	private StringWriter stringWriterMock;
 	
 	private Authenticator obtainedAuthenticator;
@@ -92,6 +98,7 @@ public class TwoFactorAuthFilterTest {
 		stringWriterMock = new StringWriter();
 		impl = new TwoFactorAuthFilter();
 		impl.setServletContext(servletContextMock);
+		impl.setSslContextFactory(mockSslFactory);
 		PowerMockito.when(ObjectFactory.buildStringWriter()).thenReturn(stringWriterMock);
 		PowerMockito.when(ObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
 		PowerMockito.when(ObjectFactory.buildProperties()).thenReturn(properties);
@@ -141,8 +148,8 @@ public class TwoFactorAuthFilterTest {
 		Assert.assertEquals(STRING_TRUE, properties.get(TwoFactorAuthFilter.USE_AUTH_KEY));
 		Assert.assertEquals(FAKE_SMTP_HOST, properties.get(TwoFactorAuthFilter.SMTP_HOST_KEY));
 		Assert.assertEquals(FAKE_SMTP_PORT, properties.get(TwoFactorAuthFilter.SMTP_PORT_KEY));
-		Assert.assertEquals(TwoFactorAuthFilter.DEFAULT_SOCKET_FACTORY,
-				properties.get(TwoFactorAuthFilter.SOCKET_FACTORY_CLASS_KEY));
+		Assert.assertEquals(mockSslFactory,
+				properties.get(TwoFactorAuthFilter.SOCKET_FACTORY_KEY));
 		Assert.assertEquals(FAKE_SMTP_PORT, properties.get(
 				TwoFactorAuthFilter.SOCKET_FACTORY_PORT_KEY));
 		Assert.assertEquals(FAKE_EMAIL_ADDRESS, properties.get(
@@ -168,7 +175,10 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_ValidToken() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any())).thenReturn(true);
+		Mockito.when(httpServletRequestMock.getParameter(
+				TwoFactorAuthFilter.EMAIL_TOKEN_KEY)).thenReturn(UUID.randomUUID().toString());
+		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+				Mockito.eq(TokenType.SESSION))).thenReturn(true);
 		PowerMockito.when(TokenManager.removeToken(Mockito.any())).thenReturn(true);
 		impl.setEnabled(true);
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
@@ -180,7 +190,8 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_PasswordEmptyAndNotProvided() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any())).thenReturn(true);
+		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+				Mockito.eq(TokenType.SESSION))).thenReturn(true);
 		PowerMockito.when(TokenManager.removeToken(Mockito.any())).thenReturn(false);
 		impl.setEnabled(true);
 		impl.setUseAuth(true);
@@ -193,7 +204,8 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_PasswordEmptyAndProvided_EmailSent() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any())).thenReturn(false);
+		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+				Mockito.eq(TokenType.SESSION))).thenReturn(false);
 		Mockito.when(httpServletRequestMock.getParameter(
 				TwoFactorAuthFilter.EMAIL_PASSWORD_REQUEST_KEY)).thenReturn(FAKE_PASSWORD);
 		Mockito.when(httpSessionMock.getAttribute(
@@ -214,8 +226,10 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_NoAuth_MustSendEmail() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any())).thenReturn(false);
-		PowerMockito.when(TokenManager.generateNewToken()).thenReturn(FAKE_PASSWORD);
+		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+				Mockito.eq(TokenType.SESSION))).thenReturn(false);
+		PowerMockito.when(TokenManager.generateNewToken(
+				Mockito.eq(TokenType.SESSION))).thenReturn(FAKE_PASSWORD);
 		Mockito.doAnswer(inv -> {
 			inv.getArgument(1, HttpServletResponse.class).getWriter().write(FAKE_EMAIL_CONTENT);
 			return null;

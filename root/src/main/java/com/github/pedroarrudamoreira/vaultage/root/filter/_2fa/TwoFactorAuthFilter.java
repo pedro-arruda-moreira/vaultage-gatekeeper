@@ -28,7 +28,9 @@ import org.springframework.util.Assert;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
+import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.ssl.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.util.EmailCollector;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -43,8 +45,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 	static final String USE_START_TLS_KEY = "mail.smtp.starttls.enable";
 	static final String SMTP_PORT_KEY = "mail.smtp.port";
 	static final String USE_AUTH_KEY = "mail.smtp.auth";
-	static final String DEFAULT_SOCKET_FACTORY = "javax.net.ssl.SSLSocketFactory";
-	static final String SOCKET_FACTORY_CLASS_KEY = "mail.smtp.socketFactory.class";
+	static final String SOCKET_FACTORY_KEY = "mail.smtp.ssl.socketFactory";
 	static final String SOCKET_FACTORY_PORT_KEY = "mail.smtp.socketFactory.port";
 	static final String SMTP_HOST_KEY = "mail.smtp.host";
 	static final String ALREADY_VALIDATED_KEY = TwoFactorAuthFilter.class.getName() + ".ALL_OK";
@@ -71,6 +72,8 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 	private String thisServerHost;
 
 	private Properties emailProperties;
+	
+	private EasySSLSocketFactory sslContextFactory;
 
 	private ServletContext servletContext;
 	@Getter(lazy = true, value = AccessLevel.PRIVATE)
@@ -96,7 +99,8 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 			return;
 		}
 		String receivedToken = request.getParameter(EMAIL_TOKEN_KEY);
-		if(TokenManager.isTokenValid(receivedToken) && TokenManager.removeToken(receivedToken)) {
+		if(TokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
+				TokenManager.removeToken(receivedToken)) {
 			httpSession.setAttribute(ALREADY_VALIDATED_KEY, this);
 			chain.doFilter(request, response);
 			return;
@@ -117,7 +121,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 
 		try {
 			if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
-				String emailToken = TokenManager.generateNewToken();
+				String emailToken = TokenManager.generateNewToken(TokenType.SESSION);
 
 				Message message = ObjectFactory.buildMimeMessage(emailSession);
 				message.setFrom();
@@ -201,7 +205,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 			props.setProperty(SMTP_HOST_KEY, smtpHost);
 			props.setProperty(SMTP_PORT_KEY, smtpPort);
 			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);
-			props.setProperty(SOCKET_FACTORY_CLASS_KEY, DEFAULT_SOCKET_FACTORY);
+			props.put(SOCKET_FACTORY_KEY, sslContextFactory);
 			props.setProperty(USE_AUTH_KEY, String.valueOf(useAuth));
 			props.setProperty(USE_START_TLS_KEY, String.valueOf(useStartTls));
 			props.setProperty(MAIL_USER_KEY, smtpUsername);

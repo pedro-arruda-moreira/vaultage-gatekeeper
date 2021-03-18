@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.util;
 
 import java.io.StringWriter;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.mail.Authenticator;
@@ -36,6 +37,10 @@ public class ObjectFactory {
 	
 	public static StringWriter buildStringWriter() {
 		return new StringWriter();
+	}
+	
+	public static String generateUUID() {
+		return UUID.randomUUID().toString();
 	}
 
 }

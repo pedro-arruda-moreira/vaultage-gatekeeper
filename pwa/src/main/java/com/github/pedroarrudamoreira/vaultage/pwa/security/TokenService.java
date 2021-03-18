@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 
 import lombok.Setter;
 
@@ -27,7 +28,7 @@ public class TokenService implements UserDetailsService {
 		final HttpServletRequest currentRequest = SessionController.getCurrentRequest();
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);
 		String providedToken = currentRequest.getParameter("value");
-		if(TokenManager.isTokenValid(providedToken)) {
+		if(TokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {
 			TokenManager.removeToken(providedToken);
 			userPassword = providedToken;
 		} else {

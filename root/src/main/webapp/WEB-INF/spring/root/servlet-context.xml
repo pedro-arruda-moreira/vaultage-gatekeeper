@@ -1,74 +1,87 @@
-<beans:beans
-	xmlns="http://www.springframework.org/schema/security"
-	xmlns:beans="http://www.springframework.org/schema/beans"
+<beans
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<http use-expressions="true" >
-		<csrf disabled="true"/>
-		<intercept-url pattern="/**" access="isAuthenticated()" />
-		<http-basic />
-		<custom-filter ref="compositeFilter" after="LAST"/>
-	</http>
+	<sec:http use-expressions="true" >
+		<sec:csrf disabled="true"/>
+		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
+		<sec:http-basic />
+		<sec:custom-filter ref="compositeFilter" after="LAST"/>
+	</sec:http>
 	
 	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
 	
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.listener.Starter">
-		<beans:property name="users" value="${vaultage.users}" />
-		<beans:property name="port" value="${vaultage.port:3000}" />
-	</beans:bean>
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.listener.Starter">
+		<property name="users" value="${vaultage.users}" />
+		<property name="port" value="${vaultage.port:3000}" />
+	</bean>
 	
-	<beans:bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
-		<beans:property name="filters">
-			<beans:list>
-				<beans:bean
+	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
+		<property name="filters">
+			<list>
+				<bean
 					class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.TwoFactorAuthFilter">
-					<beans:property name="enabled" value="${2fa.enabled:#{false}}"/>
-					<beans:property name="useAuth" value="${2fa.use_auth:#{false}}"/>
-					<beans:property name="debug" value="#{false}"/>
-					<beans:property name="smtpHost" value="${2fa.server_host:#{null}}"/>
-					<beans:property name="smtpPort" value="${2fa.server_port:#{null}}"/>
-					<beans:property name="smtpUsername" value="${2fa.username:#{null}}"/>
-					<beans:property name="addressToSend" value="${2fa.address:#{null}}"/>
-					<beans:property name="password" value="${2fa.server_password:#{null}}"/>
-					<beans:property name="thisServerHost" value="${server.host}"/>
-					<beans:property name="useStartTls" value="${2fa.use_start_tls:#{true}}"/>
-				</beans:bean>
+					<property name="enabled" value="${2fa.enabled:#{false}}"/>
+					<property name="useAuth" value="${2fa.use_auth:#{false}}"/>
+					<property name="debug" value="#{false}"/>
+					<property name="smtpHost" value="${2fa.server_host:#{null}}"/>
+					<property name="smtpPort" value="${2fa.server_port:#{null}}"/>
+					<property name="smtpUsername" value="${2fa.username:#{null}}"/>
+					<property name="addressToSend" value="${2fa.address:#{null}}"/>
+					<property name="password" value="${2fa.server_password:#{null}}"/>
+					<property name="thisServerHost" value="${server.host}"/>
+					<property name="useStartTls" value="${2fa.use_start_tls:#{true}}"/>
+					<property name="sslContextFactory">
+						<bean
+							class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.ssl.EasySSLSocketFactory">
+							<constructor-arg value="${2fa.ssl.protocol:TLS}" index="0"/>
+							<constructor-arg value="${2fa.ssl.trustStoreLocation:#{null}}" index="1"/>
+							<constructor-arg value="${2fa.ssl.trustStorePassword:#{null}}" index="2"/>
+							<constructor-arg value="${2fa.ssl.keyStoreLocation:#{null}}" index="3"/>
+							<constructor-arg value="${2fa.ssl.keyStorePassword:#{null}}" index="4"/>
+							<constructor-arg value="${2fa.ssl.keyStorePrivateKey:#{null}}" index="5"/>
+							<property name="trustAllHosts" value="${2fa.ssl.trustAllHosts:false}"/>
+							<property name="trustedHosts" value="${2fa.ssl.trustedHosts:#{null}}"/>
+						</bean>
+					</property>
+				</bean>
 	
-				<beans:bean
+				<bean
 					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-					<beans:property name="maxSessionsPerDay"
+					<property name="maxSessionsPerDay"
 						value="${security.max-sessions-per-day:7}" />
-					<beans:property name="maxSessionsPerHour"
+					<property name="maxSessionsPerHour"
 						value="${security.max-sessions-per-hour:5}" />
-					<beans:property name="maxLoginAttemptsPerSession"
+					<property name="maxLoginAttemptsPerSession"
 						value="${security.max-attempts-per-session:3}" />
-					<beans:property name="sessionDurationInHours"
+					<property name="sessionDurationInHours"
 						value="${security.session-duration-in-hours:72}" />
-					<beans:property name="secure" value="${security.https-enabled:true}" />
-				</beans:bean>
-			</beans:list>
-		</beans:property>
-	</beans:bean>
+					<property name="secure" value="${security.https-enabled:true}" />
+				</bean>
+			</list>
+		</property>
+	</bean>
 	
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.ChannelDecidingServlet"
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.ChannelDecidingServlet"
 		id="channelDecidingServlet">
-		<beans:property name="mobilePattern"
+		<property name="mobilePattern"
 			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
-	</beans:bean>
+	</bean>
 	
 	
 
-	<authentication-manager>
-		<authentication-provider>
-			<user-service>
-				<user name="${security.basic_user}" password="{noop}${security.basic_password}"
+	<sec:authentication-manager>
+		<sec:authentication-provider>
+			<sec:user-service>
+				<sec:user name="${security.basic_user}" password="{noop}${security.basic_password}"
 					authorities="ROLE_USER" />
-			</user-service>
-		</authentication-provider>
-	</authentication-manager>
+			</sec:user-service>
+		</sec:authentication-provider>
+	</sec:authentication-manager>
 
-</beans:beans>
+</beans>
