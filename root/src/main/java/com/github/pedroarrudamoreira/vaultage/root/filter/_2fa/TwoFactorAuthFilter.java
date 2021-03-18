@@ -52,8 +52,9 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 	static final String CHECK_EMAIL_HTML_LOCATION = "/2fa/email/check_email.html";
 	static final String PASSWORD_HTML_LOCATION = "/2fa/email/password.html";
 	static final String EMAIL_TEMPLATE_JSP_LOCATION = "/2fa/email/email_template.jsp";
-	public static final String LINK_REQUEST_KEY = "__EMAIL_LINK_%%$$";
-	static final String EMAIL_TOKEN_KEY = "email_token";
+	public static final String EMAIL_TEMPLATE_SERVER_HOST_KEY = "__EMAIL__SERVER_HOST_%%$$";
+
+	public static final String EMAIL_TOKEN_KEY = "email_token";
 	static final String EMAIL_SENT_KEY = "__EMAIL_SENT_%%$$";
 	private boolean useAuth;
 	private boolean debug;
@@ -72,7 +73,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 	private String thisServerHost;
 
 	private Properties emailProperties;
-	
+
 	private EasySSLSocketFactory sslContextFactory;
 
 	private ServletContext servletContext;
@@ -120,23 +121,26 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 					throws IOException, ServletException {
 
 		try {
-			if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
-				String emailToken = TokenManager.generateNewToken(TokenType.SESSION);
+			synchronized (request.getSession()) {
+				if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
+					request.setAttribute(EMAIL_TOKEN_KEY,
+							TokenManager.generateNewToken(TokenType.SESSION));
 
-				Message message = ObjectFactory.buildMimeMessage(emailSession);
-				message.setFrom();
+					Message message = ObjectFactory.buildMimeMessage(emailSession);
+					message.setFrom();
 
-				Address[] toUser = InternetAddress.parse(addressToSend);
+					Address[] toUser = InternetAddress.parse(addressToSend);
 
-				message.setRecipients(Message.RecipientType.TO, toUser);
-				message.setSubject("Login Attempt from Vaultage");
-				request.setAttribute(LINK_REQUEST_KEY, formatLinkAddress(request, emailToken));
+					message.setRecipients(Message.RecipientType.TO, toUser);
+					message.setSubject("Login Attempt from Vaultage");
+					request.setAttribute(EMAIL_TEMPLATE_SERVER_HOST_KEY, formatFormAction(request));
 
-				StringWriter emailContent = extractEmailContent(request, response);
-				message.setContent(emailContent.toString(), EMAIL_CONTENT_TYPE);
-				Transport.send(message);
-				httpSession.setAttribute(EMAIL_SENT_KEY, this);
+					StringWriter emailContent = extractEmailContent(request, response);
+					message.setContent(emailContent.toString(), EMAIL_CONTENT_TYPE);
+					Transport.send(message);
+					httpSession.setAttribute(EMAIL_SENT_KEY, this);
 
+				}
 			}
 			getCheckEmailDispatcher().forward(request, response);
 
@@ -154,12 +158,10 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 		return emailContent;
 	}
 
-	private String formatLinkAddress(HttpServletRequest request, String emailToken) {
-		return String.format("http%s://%s/?%s=%s",
+	private String formatFormAction(HttpServletRequest request) {
+		return String.format("http%s://%s",
 				(request.isSecure() ? "s" : StringUtils.EMPTY),
-				thisServerHost,
-				EMAIL_TOKEN_KEY,
-				emailToken);
+				thisServerHost);
 	}
 
 	private boolean validateEmailPassword(ServletResponse response, HttpServletRequest request)

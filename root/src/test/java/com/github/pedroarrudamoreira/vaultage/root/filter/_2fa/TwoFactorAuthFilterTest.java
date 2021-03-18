@@ -3,6 +3,7 @@ package com.github.pedroarrudamoreira.vaultage.root.filter._2fa;
 import java.io.StringWriter;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.mail.Authenticator;
 import javax.mail.AuthenticatorAccessor;
@@ -240,12 +241,26 @@ public class TwoFactorAuthFilterTest {
 		impl.setAddressToSend(FAKE_EMAIL_ADDRESS);
 		impl.setThisServerHost(TwoFactorAuthFilterTest.FAKE_SMTP_HOST);
 		impl.setUseAuth(false);
+		AtomicBoolean serverHostDefined = new AtomicBoolean(false);
+		AtomicBoolean tokenDefined = new AtomicBoolean(false);
+		Mockito.doAnswer((i) -> {
+			serverHostDefined.set(true);
+			return null;
+		}).when(httpServletRequestMock).setAttribute(Mockito.eq(TwoFactorAuthFilter.EMAIL_TEMPLATE_SERVER_HOST_KEY),
+				Mockito.eq("http://mail.test.com"));
+		
+		Mockito.doAnswer((i) -> {
+			tokenDefined.set(true);
+			return null;
+		}).when(httpServletRequestMock).setAttribute(Mockito.eq(TwoFactorAuthFilter.EMAIL_TOKEN_KEY),
+				Mockito.eq("myp4ss"));
+		
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
 		Mockito.verify(mimeMessageMock).setFrom();
 		Mockito.verify(checkEmailDispatcherMock).forward(httpServletRequestMock,
 				httpServletResponseMock);
-		Mockito.verify(httpServletRequestMock).setAttribute(TwoFactorAuthFilter.LINK_REQUEST_KEY,
-				"http://mail.test.com/?email_token=myp4ss");
+		Assert.assertTrue("Server host for email was not defined.", serverHostDefined.get());
+		Assert.assertTrue("Token for email was not defined.", tokenDefined.get());
 		Mockito.verify(mimeMessageMock).setContent(FAKE_EMAIL_CONTENT,
 				TwoFactorAuthFilter.EMAIL_CONTENT_TYPE);
 		Mockito.verifyNoInteractions(filterChainMock);
