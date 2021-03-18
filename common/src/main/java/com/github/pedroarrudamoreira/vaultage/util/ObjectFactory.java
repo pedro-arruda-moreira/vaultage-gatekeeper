@@ -11,6 +11,8 @@ import javax.mail.internet.MimeMessage;
 
 public class ObjectFactory {
 	
+	public static final String PRESENT = "__present__";
+	
 	private ObjectFactory() {
 		super();
 	}

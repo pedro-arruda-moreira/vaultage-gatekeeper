@@ -161,7 +161,7 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, this);
+		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, ObjectFactory.PRESENT);
 		chain.doFilter(request, response);
 	}
 	

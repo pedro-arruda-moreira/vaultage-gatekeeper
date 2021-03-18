@@ -260,7 +260,7 @@ public class SessionControllerTest {
 	@Test
 	public void test011LoginSuccessful() throws Exception {
 		impl.doFilter(httpServletRequestMock, null, filterChainMock);
-		Mockito.verify(httpSessionMock).setAttribute(SessionController.LOGGED_ON_KEY, impl);
+		Mockito.verify(httpSessionMock).setAttribute(SessionController.LOGGED_ON_KEY, ObjectFactory.PRESENT);
 		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, null);
 	}
 

@@ -185,7 +185,7 @@ public class TwoFactorAuthFilterTest {
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
 		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, httpServletResponseMock);
 		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.ALREADY_VALIDATED_KEY,
-				impl);
+				ObjectFactory.PRESENT);
 		
 	}
 
@@ -264,7 +264,7 @@ public class TwoFactorAuthFilterTest {
 		Mockito.verify(mimeMessageMock).setContent(FAKE_EMAIL_CONTENT,
 				TwoFactorAuthFilter.EMAIL_CONTENT_TYPE);
 		Mockito.verifyNoInteractions(filterChainMock);
-		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.EMAIL_SENT_KEY, impl);
+		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.EMAIL_SENT_KEY, ObjectFactory.PRESENT);
 		PowerMockito.verifyStatic(Transport.class);
 		Transport.send(mimeMessageMock);
 		Assert.assertEquals(FAKE_EMAIL_CONTENT, stringWriterMock.toString());

@@ -102,7 +102,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 		String receivedToken = request.getParameter(EMAIL_TOKEN_KEY);
 		if(TokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
 				TokenManager.removeToken(receivedToken)) {
-			httpSession.setAttribute(ALREADY_VALIDATED_KEY, this);
+			httpSession.setAttribute(ALREADY_VALIDATED_KEY, ObjectFactory.PRESENT);
 			chain.doFilter(request, response);
 			return;
 		}
@@ -138,7 +138,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements Initializing
 					StringWriter emailContent = extractEmailContent(request, response);
 					message.setContent(emailContent.toString(), EMAIL_CONTENT_TYPE);
 					Transport.send(message);
-					httpSession.setAttribute(EMAIL_SENT_KEY, this);
+					httpSession.setAttribute(EMAIL_SENT_KEY, ObjectFactory.PRESENT);
 
 				}
 			}
