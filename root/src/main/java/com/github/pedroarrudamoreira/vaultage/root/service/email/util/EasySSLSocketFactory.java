@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.filter._2fa.ssl;
+package com.github.pedroarrudamoreira.vaultage.root.service.email.util;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
