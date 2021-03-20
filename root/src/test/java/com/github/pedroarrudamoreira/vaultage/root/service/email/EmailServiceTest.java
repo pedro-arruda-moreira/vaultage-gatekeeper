@@ -1,11 +1,19 @@
 package com.github.pedroarrudamoreira.vaultage.root.service.email;
 
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
+import javax.activation.DataSource;
+import javax.mail.Address;
 import javax.mail.Authenticator;
+import javax.mail.AuthenticatorAccessor;
+import javax.mail.Message;
+import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -18,20 +26,22 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.service.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ObjectFactory.class, Session.class, Transport.class})
 public class EmailServiceTest {
 	private static final String FAKE_EMAIL_CONTENT = "hello!";
+	private static final String FAKE_SUBJECT = "Greetings";
 	private static final String STRING_FALSE = "false";
 	private static final String STRING_TRUE = "true";
 	private static final String FAKE_SMTP_PORT = "1234";
-	private static final String FAKE_PASSWORD = "myp4ss";
+	private static final String FAKE_PASSWORD = "my_p4ssw0rd";
 	private static final String FAKE_SMTP_HOST = "mail.test.com";
 	private static final String FAKE_EMAIL_ADDRESS = "test@test.com";
+	private static final String FAKE_FILE_NAME = "document.pdf";
 	
 	private EmailService impl;
 	
@@ -48,6 +58,9 @@ public class EmailServiceTest {
 	@Mock
 	private EasySSLSocketFactory mockSslFactory;
 	
+	@Mock
+	private DataSource mockDataSource;
+	
 	@BeforeClass
 	public static void setupStatic() {
 		TestUtils.doPrepareForTest();
@@ -55,12 +68,18 @@ public class EmailServiceTest {
 	
 	@Before
 	public void setup() {
+		setupStatic();
 		impl = new EmailService();
 		impl.setSslContextFactory(mockSslFactory);
+		impl.setAddressToSend(FAKE_EMAIL_ADDRESS);
+		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
 		properties = new Properties();
 		PowerMockito.when(ObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
 		PowerMockito.when(ObjectFactory.buildProperties()).thenReturn(properties);
-		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then((inv) -> {
+		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
+				new ArgumentCatcher<Session>(emailSessionMock,
+						v -> obtainedAuthenticator = v.get(), 1));
+		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(inv -> {
 			obtainedAuthenticator = inv.getArgument(1, Authenticator.class);
 			return emailSessionMock;
 		});
@@ -77,17 +96,17 @@ public class EmailServiceTest {
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void testAfterPropertiesSet_RequiredFieldNotSet() throws Exception {
+		impl.setEnabled(true);
 		impl.afterPropertiesSet();
 	}
 
 	@Test
 	public void testAfterPropertiesSet_OK() throws Exception {
-		impl.setAddressToSend(FAKE_EMAIL_ADDRESS);
+		impl.setEnabled(true);
 		impl.setDebug(false);
 		impl.setPassword(FAKE_PASSWORD);
 		impl.setSmtpHost(FAKE_SMTP_HOST);
 		impl.setSmtpPort(FAKE_SMTP_PORT);
-		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
 		impl.setThisServerHost("localhost");
 		impl.setUseAuth(true);
 		impl.setUseStartTls(false);
@@ -103,6 +122,73 @@ public class EmailServiceTest {
 				EmailService.SOCKET_FACTORY_PORT_KEY));
 		Assert.assertEquals(FAKE_EMAIL_ADDRESS, properties.get(
 				EmailService.MAIL_USER_KEY));
+	}
+	
+	@Test
+	public void testAuthenticationConfigured() {
+		Assert.assertTrue(impl.isAuthenticationConfigured());
+		impl.setUseAuth(true);
+		Assert.assertFalse(impl.isAuthenticationConfigured());
+		impl.setPassword(FAKE_PASSWORD);
+		Assert.assertTrue(impl.isAuthenticationConfigured());
+	}
+	
+	@Test
+	public void testSendEmailWithoutAttachment() throws Exception {
+		AtomicReference<Address[]> obtainedAddresses = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedAddresses.set(v.get()), 1)).when(
+				mimeMessageMock).setRecipients(
+						Mockito.eq(Message.RecipientType.TO), Mockito.any(Address[].class));
+		AtomicReference<String> obtainedSubject = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedSubject.set(v.get()), 0)).when(
+				mimeMessageMock).setSubject(Mockito.anyString());
+		AtomicReference<MimeMultipart> obtainedMultipart = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedMultipart.set(v.get()), 0)).when(
+				mimeMessageMock).setContent(Mockito.any());
+		impl.sendEmail(FAKE_SUBJECT, FAKE_EMAIL_CONTENT, null);
+		Mockito.verify(mimeMessageMock).setFrom();
+		PowerMockito.verifyStatic(Transport.class);
+		Transport.send(mimeMessageMock);
+		Assert.assertEquals(1, obtainedMultipart.get().getCount());
+		Assert.assertEquals(FAKE_EMAIL_CONTENT, obtainedMultipart.get().getBodyPart(0).getContent());
+		Assert.assertEquals(FAKE_SUBJECT, obtainedSubject.get());
+		Assert.assertEquals(1, obtainedAddresses.get().length);
+		Assert.assertEquals(FAKE_EMAIL_ADDRESS, obtainedAddresses.get()[0].toString());
+	}
+	
+	@Test
+	public void testSendEmailWithAttachment() throws Exception {
+		impl.setUseAuth(true);
+		impl.setPassword(FAKE_PASSWORD);
+		AtomicReference<Address[]> obtainedAddresses = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedAddresses.set(v.get()), 1)).when(
+				mimeMessageMock).setRecipients(
+						Mockito.eq(Message.RecipientType.TO), Mockito.any(Address[].class));
+		AtomicReference<String> obtainedSubject = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedSubject.set(v.get()), 0)).when(
+				mimeMessageMock).setSubject(Mockito.anyString());
+		AtomicReference<MimeMultipart> obtainedMultipart = new AtomicReference<>();
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedMultipart.set(v.get()), 0)).when(
+				mimeMessageMock).setContent(Mockito.any());
+		Mockito.when(mockDataSource.getName()).thenReturn(FAKE_FILE_NAME);
+		impl.sendEmail(FAKE_SUBJECT, FAKE_EMAIL_CONTENT, mockDataSource);
+		final PasswordAuthentication access = AuthenticatorAccessor.access(
+				obtainedAuthenticator);
+		Assert.assertEquals(FAKE_PASSWORD, access.getPassword());
+		Assert.assertEquals(FAKE_EMAIL_ADDRESS, access.getUserName());
+		Mockito.verify(mimeMessageMock).setFrom();
+		PowerMockito.verifyStatic(Transport.class);
+		Transport.send(mimeMessageMock);
+		final MimeMultipart multipart = obtainedMultipart.get();
+		Assert.assertEquals(2, multipart.getCount());
+		Assert.assertEquals(FAKE_EMAIL_CONTENT, multipart.getBodyPart(0).getContent());
+		Assert.assertEquals(FAKE_SUBJECT, obtainedSubject.get());
+		Assert.assertEquals(1, obtainedAddresses.get().length);
+		Assert.assertEquals(FAKE_EMAIL_ADDRESS, obtainedAddresses.get()[0].toString());
+		final MimeBodyPart attachmentBodyPart = (MimeBodyPart)multipart.getBodyPart(
+				1);
+		Assert.assertEquals(FAKE_FILE_NAME, attachmentBodyPart.getFileName());
+		Assert.assertEquals(mockDataSource, attachmentBodyPart.getDataHandler().getDataSource());
 	}
 
 }

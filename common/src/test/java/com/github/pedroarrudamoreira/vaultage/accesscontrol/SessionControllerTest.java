@@ -28,6 +28,7 @@ import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.security.core.context.SecurityContext;
 
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
@@ -51,7 +52,7 @@ public class SessionControllerTest {
 
 	@Mock
 	private SecurityContext securityContextMock;
-	
+
 	@Mock
 	private FilterChain filterChainMock;
 
@@ -83,11 +84,9 @@ public class SessionControllerTest {
 	@BeforeClass
 	public static void setupStatic() throws Exception {
 		TestUtils.doPrepareForTest();
-		PowerMockito.when(ObjectFactory.buildThread(Mockito.any(), Mockito.any())).then((inv) -> {
-			obtainedRunnable = inv.getArgument(0, Runnable.class);
-			return mockThread;
-		});
-		PowerMockito.doAnswer((inv) -> {
+		PowerMockito.when(ObjectFactory.buildThread(Mockito.any(), Mockito.any())).then(
+				new ArgumentCatcher<Thread>(mockThread, v -> obtainedRunnable = v.get(), 0));
+		PowerMockito.doAnswer(inv -> {
 			sleepCount--;
 			if(sleepCount < 0) {
 				throw new Stop();
@@ -250,13 +249,13 @@ public class SessionControllerTest {
 		Assert.assertEquals(3, attempts[0].intValue());
 
 	}
-	
+
 	@Test
 	public void test010RequestDestroyed() {
 		impl.requestDestroyed(new ServletRequestEvent(servletContextMock, httpServletRequestMock));
 		Assert.assertNull(SessionController.getCurrentRequest());
 	}
-	
+
 	@Test
 	public void test011LoginSuccessful() throws Exception {
 		impl.doFilter(httpServletRequestMock, null, filterChainMock);
@@ -265,11 +264,9 @@ public class SessionControllerTest {
 	}
 
 	private void configureAttempts(AtomicInteger[] attempts) {
-		Mockito.doAnswer((inv) -> {
-			attempts[0] = inv.getArgument(1, AtomicInteger.class);
-			return null;
-		}).when(httpSessionMock).setAttribute(Mockito.eq("login_attempts_remaining"),
-				Mockito.any());
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> attempts[0] = v.get(), 1)).when(
+				httpSessionMock).setAttribute(Mockito.eq("login_attempts_remaining"),
+						Mockito.any());
 		Mockito.when(httpSessionMock.getAttribute(
 				"login_attempts_remaining")).then(inv -> attempts[0]);
 	}

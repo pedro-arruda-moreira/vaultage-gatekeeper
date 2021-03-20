@@ -6,10 +6,8 @@ import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.mail.Address;
 import javax.mail.Authenticator;
-import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
@@ -24,6 +22,7 @@ import org.springframework.util.Assert;
 import com.github.pedroarrudamoreira.vaultage.root.service.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
+import lombok.Getter;
 import lombok.Setter;
 
 public class EmailService implements InitializingBean {
@@ -54,6 +53,8 @@ public class EmailService implements InitializingBean {
 	private String thisServerHost;
 	@Setter
 	private EasySSLSocketFactory sslContextFactory;
+	@Getter @Setter
+	private boolean enabled;
 
 	private Properties emailProperties;
 	
@@ -74,11 +75,13 @@ public class EmailService implements InitializingBean {
 		message.setFrom();
 
 		Address[] toUser = InternetAddress.parse(addressToSend);
-
-	    BodyPart bodyPart = new MimeBodyPart();
+		message.setRecipients(Message.RecipientType.TO, toUser);
+		message.setSubject(subject);
+		
+		MimeBodyPart bodyPart = new MimeBodyPart();
 	    bodyPart.setContent(emailContent, EMAIL_CONTENT_TYPE);
 	    
-		Multipart multipart = new MimeMultipart();
+	    MimeMultipart multipart = new MimeMultipart();
 	    multipart.addBodyPart(bodyPart);
 	    if(attachment != null) {
 	        MimeBodyPart attachmentPart = new MimeBodyPart();
@@ -87,14 +90,13 @@ public class EmailService implements InitializingBean {
 	        multipart.addBodyPart(attachmentPart);
 	    }
 
-		message.setRecipients(Message.RecipientType.TO, toUser);
-		message.setSubject(subject);
 
 		message.setContent(multipart);
 		Transport.send(message);
 	}
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		if(enabled) {
 			Assert.notNull(addressToSend, "addressToSend required.");
 			Assert.notNull(smtpHost, "smtpHost required.");
 			Assert.notNull(smtpPort, "smtpPort required.");
@@ -109,6 +111,7 @@ public class EmailService implements InitializingBean {
 			props.setProperty(USE_START_TLS_KEY, String.valueOf(useStartTls));
 			props.setProperty(MAIL_USER_KEY, smtpUsername);
 			this.emailProperties = props;
+		}
 	}
 	private Session configureSession() {
 		Session session = null;

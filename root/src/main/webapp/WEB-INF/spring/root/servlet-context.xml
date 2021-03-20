@@ -21,34 +21,40 @@
 		<property name="port" value="${vaultage.port:3000}" />
 	</bean>
 	
+	<bean id="emailService" class="com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService">
+		<property name="enabled" value="${email.enabled:#{false}}"/>
+		<property name="useAuth" value="${email.use_auth:#{false}}"/>
+		<property name="debug" value="#{false}"/>
+		<property name="smtpHost" value="${email.server_host:#{null}}"/>
+		<property name="smtpPort" value="${email.server_port:#{null}}"/>
+		<property name="smtpUsername" value="${email.username:#{null}}"/>
+		<property name="addressToSend" value="${email.address:#{null}}"/>
+		<property name="password" value="${email.server_password:#{null}}"/>
+		<property name="thisServerHost" value="${server.host}"/>
+		<property name="useStartTls" value="${email.use_start_tls:#{true}}"/>
+		<property name="sslContextFactory">
+			<bean
+				class="com.github.pedroarrudamoreira.vaultage.root.service.email.util.EasySSLSocketFactory">
+				<constructor-arg value="${email.ssl.protocol:TLS}" index="0"/>
+				<constructor-arg value="${email.ssl.trustStoreLocation:#{null}}" index="1"/>
+				<constructor-arg value="${email.ssl.trustStorePassword:#{null}}" index="2"/>
+				<constructor-arg value="${email.ssl.keyStoreLocation:#{null}}" index="3"/>
+				<constructor-arg value="${email.ssl.keyStorePassword:#{null}}" index="4"/>
+				<constructor-arg value="${email.ssl.keyStorePrivateKey:#{null}}" index="5"/>
+				<property name="trustAllHosts" value="${email.ssl.trustAllHosts:false}"/>
+				<property name="trustedHosts" value="${email.ssl.trustedHosts:#{null}}"/>
+			</bean>
+		</property>
+	</bean>
+	
 	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
 		<property name="filters">
 			<list>
 				<bean
 					class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.TwoFactorAuthFilter">
 					<property name="enabled" value="${2fa.enabled:#{false}}"/>
-					<property name="useAuth" value="${2fa.use_auth:#{false}}"/>
-					<property name="debug" value="#{false}"/>
-					<property name="smtpHost" value="${2fa.server_host:#{null}}"/>
-					<property name="smtpPort" value="${2fa.server_port:#{null}}"/>
-					<property name="smtpUsername" value="${2fa.username:#{null}}"/>
-					<property name="addressToSend" value="${2fa.address:#{null}}"/>
-					<property name="password" value="${2fa.server_password:#{null}}"/>
 					<property name="thisServerHost" value="${server.host}"/>
-					<property name="useStartTls" value="${2fa.use_start_tls:#{true}}"/>
-					<property name="sslContextFactory">
-						<bean
-							class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.ssl.EasySSLSocketFactory">
-							<constructor-arg value="${2fa.ssl.protocol:TLS}" index="0"/>
-							<constructor-arg value="${2fa.ssl.trustStoreLocation:#{null}}" index="1"/>
-							<constructor-arg value="${2fa.ssl.trustStorePassword:#{null}}" index="2"/>
-							<constructor-arg value="${2fa.ssl.keyStoreLocation:#{null}}" index="3"/>
-							<constructor-arg value="${2fa.ssl.keyStorePassword:#{null}}" index="4"/>
-							<constructor-arg value="${2fa.ssl.keyStorePrivateKey:#{null}}" index="5"/>
-							<property name="trustAllHosts" value="${2fa.ssl.trustAllHosts:false}"/>
-							<property name="trustedHosts" value="${2fa.ssl.trustedHosts:#{null}}"/>
-						</bean>
-					</property>
+					<property name="emailService" ref="emailService"/>
 				</bean>
 	
 				<bean

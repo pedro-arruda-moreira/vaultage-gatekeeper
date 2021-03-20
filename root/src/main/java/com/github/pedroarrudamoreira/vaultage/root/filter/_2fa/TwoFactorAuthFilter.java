@@ -61,6 +61,10 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 	@Override
 	protected void doFilterImpl(ServletRequest rq, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
+		if(!emailService.isEnabled()) {
+			throw new IllegalStateException("cannot send emails because e-mail service"
+					+ " is not enabled. Please enable it and try again.");
+		}
 		HttpServletRequest request = (HttpServletRequest) rq;
 		HttpSession httpSession = request.getSession();
 		if(httpSession.getAttribute(ALREADY_VALIDATED_KEY) != null) {
