@@ -25,6 +25,12 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-build-tools</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
 			<artifactId>vaultage-web-app-common</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>

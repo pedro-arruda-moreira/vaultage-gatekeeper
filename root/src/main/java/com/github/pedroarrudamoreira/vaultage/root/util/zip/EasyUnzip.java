@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.util;
+package com.github.pedroarrudamoreira.vaultage.root.util.zip;
 
 import java.io.File;
 import java.io.FileOutputStream;
