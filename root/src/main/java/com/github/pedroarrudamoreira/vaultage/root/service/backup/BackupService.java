@@ -4,8 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.mail.util.ByteArrayDataSource;
 import javax.servlet.ServletContext;
@@ -51,11 +55,9 @@ public class BackupService implements DisposableBean, ServletContextAware {
 			return;
 		}
 		final ByteArrayOutputStream emailAttachmentData = new ByteArrayOutputStream();
-		String cryptoIndicator = (doEncrypt ? "Y" : "N");
-		emailAttachmentData.write(FILE_SIGNATURE.getBytes(StandardCharsets.ISO_8859_1));
-		emailAttachmentData.write(cryptoIndicator.getBytes(StandardCharsets.ISO_8859_1));
 		final EasyZip zipControl = new EasyZip(vaultageDataFolder);
 		if(doEncrypt) {
+			emailAttachmentData.write(FILE_SIGNATURE.getBytes(StandardCharsets.ISO_8859_1));
 			ByteArrayInputStream encryptedZip = doCrypto(zipControl);
 			copy(encryptedZip, emailAttachmentData);
 		} else {
@@ -68,8 +70,13 @@ public class BackupService implements DisposableBean, ServletContextAware {
 				dataSource);
 	}
 	private String createFileName() {
-		// TODO Auto-generated method stub
-		return "backup.vtgb";
+		String fileExtension = ".zip";
+		if(doEncrypt) {
+			fileExtension = ".vtgb";
+		}
+		return String.format("vaultage_backup_%s%s",
+				new SimpleDateFormat("yyyyMMdd").format(new Date()),
+				fileExtension);
 	}
 	public ByteArrayInputStream doCrypto(final EasyZip zipControl)
 			throws NoSuchAlgorithmException, IOException, Exception {
@@ -81,8 +88,8 @@ public class BackupService implements DisposableBean, ServletContextAware {
 		return encryptedZip;
 	}
 
-	private void copy(ByteArrayInputStream encryptedZip,
-			ByteArrayOutputStream emailAttachmentData) throws IOException {
+	private void copy(InputStream encryptedZip,
+			OutputStream emailAttachmentData) throws IOException {
 		byte[] buffer = new byte[1024];
 		int len;
 		while((len = encryptedZip.read(buffer)) > -1) {
