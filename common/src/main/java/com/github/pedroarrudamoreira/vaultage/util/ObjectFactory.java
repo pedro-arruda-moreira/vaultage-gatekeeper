@@ -1,5 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.util.Properties;
 import java.util.UUID;
@@ -43,6 +44,10 @@ public class ObjectFactory {
 	
 	public static String generateUUID() {
 		return UUID.randomUUID().toString();
+	}
+	
+	public static File buildFile(File parent, String child) {
+		return new File(parent, child);
 	}
 
 }

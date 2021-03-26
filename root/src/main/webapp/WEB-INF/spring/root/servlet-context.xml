@@ -21,6 +21,15 @@
 		<property name="port" value="${vaultage.port:3000}" />
 	</bean>
 	
+	<bean id="backupService"
+		class="com.github.pedroarrudamoreira.vaultage.root.service.backup.BackupService">
+		<property name="enabled" value="${backup.enabled}"/>
+		<property name="doEncrypt" value="${backup.encrypt}"/>
+		<property name="thisServerHost" value="${server.host}"/>
+		<property name="type" value="${backup.type:startup}"/>
+		<property name="emailService" ref="emailService"/>
+	</bean>
+		
 	<bean id="emailService" class="com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService">
 		<property name="enabled" value="${email.enabled:#{false}}"/>
 		<property name="useAuth" value="${email.use_auth:#{false}}"/>
