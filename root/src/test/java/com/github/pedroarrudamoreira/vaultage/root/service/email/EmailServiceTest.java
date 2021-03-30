@@ -79,10 +79,6 @@ public class EmailServiceTest {
 		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
 						v -> obtainedAuthenticator = v.get(), 1));
-		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(inv -> {
-			obtainedAuthenticator = inv.getArgument(1, Authenticator.class);
-			return emailSessionMock;
-		});
 	}
 	
 	
