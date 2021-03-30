@@ -26,7 +26,7 @@ public class EasyZipTest {
 	
 	@Before
 	public void setup() {
-		impl = new EasyZip(target);
+		impl = new EasyZip(target, null);
 	}
 	
 	@Test

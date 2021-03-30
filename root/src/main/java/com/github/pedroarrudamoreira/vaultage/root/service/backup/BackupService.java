@@ -1,13 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.root.service.backup;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -19,8 +13,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService;
-import com.github.pedroarrudamoreira.vaultage.root.util.crypto.EasyAES;
-import com.github.pedroarrudamoreira.vaultage.root.util.crypto.KeyAndIV;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -40,8 +32,6 @@ public class BackupService implements DisposableBean, ServletContextAware {
 
 	private boolean doEncrypt;
 
-	private static final String FILE_SIGNATURE = "VTGBKP";
-
 	@Override
 	public void setServletContext(ServletContext servletContext) {
 		if(enabled && type.equals(TYPE_STARTUP)) {
@@ -55,14 +45,13 @@ public class BackupService implements DisposableBean, ServletContextAware {
 			return;
 		}
 		final ByteArrayOutputStream emailAttachmentData = new ByteArrayOutputStream();
-		final EasyZip zipControl = new EasyZip(vaultageDataFolder);
+		EasyZip zipControl = null; 
 		if(doEncrypt) {
-			emailAttachmentData.write(FILE_SIGNATURE.getBytes(StandardCharsets.ISO_8859_1));
-			ByteArrayInputStream encryptedZip = doCrypto(zipControl);
-			copy(encryptedZip, emailAttachmentData);
+			zipControl = new EasyZip(vaultageDataFolder, thisServerHost.toCharArray());
 		} else {
-			zipControl.zipIt(emailAttachmentData);
+			zipControl = new EasyZip(vaultageDataFolder, null);
 		}
+		zipControl.zipIt(emailAttachmentData);
 		final ByteArrayDataSource dataSource = new ByteArrayDataSource(emailAttachmentData.toByteArray(),
 				"text/plain");
 		dataSource.setName(createFileName());
@@ -70,31 +59,8 @@ public class BackupService implements DisposableBean, ServletContextAware {
 				dataSource);
 	}
 	private String createFileName() {
-		String fileExtension = ".zip";
-		if(doEncrypt) {
-			fileExtension = ".vtgb";
-		}
-		return String.format("vaultage_backup_%s%s",
-				new SimpleDateFormat("yyyyMMdd").format(new Date()),
-				fileExtension);
-	}
-	public ByteArrayInputStream doCrypto(final EasyZip zipControl)
-			throws NoSuchAlgorithmException, IOException, Exception {
-		final ByteArrayOutputStream baosFromZip = new ByteArrayOutputStream();
-		KeyAndIV k = KeyAndIV.fromString(thisServerHost);
-		zipControl.zipIt(baosFromZip);
-		ByteArrayInputStream encryptedZip = new ByteArrayInputStream(
-				new EasyAES(k).encrypt(baosFromZip.toByteArray()));
-		return encryptedZip;
-	}
-
-	private void copy(InputStream encryptedZip,
-			OutputStream emailAttachmentData) throws IOException {
-		byte[] buffer = new byte[1024];
-		int len;
-		while((len = encryptedZip.read(buffer)) > -1) {
-			emailAttachmentData.write(buffer, 0, len);
-		}
+		return String.format("vaultage_backup_%s.zip",
+				new SimpleDateFormat("yyyyMMdd").format(new Date()));
 	}
 	@Override
 	public void destroy() throws Exception {
