@@ -40,7 +40,7 @@ public class OnlineCryptoServlet extends HttpServlet {
 			}
 			cryptoData.setAttemptsLeft(newAttemptsLeft);
 			resp.setStatus(403);
-			resp.getWriter().write(newAttemptsLeft);
+			resp.getWriter().write(String.valueOf(newAttemptsLeft));
 			return;
 		}
 		resetAttempts(cryptoData);
