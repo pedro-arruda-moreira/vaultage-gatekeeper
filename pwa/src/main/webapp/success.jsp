@@ -19,6 +19,8 @@ Taking you to the PWA now.
 	<input type="hidden" name="self_contained" value="true" />
 	<input type="hidden" name="crypto_type"
 		value="<%=request.getAttribute(TokenService.CRYPTO_TYPE) %>" />
+	<input type="hidden" name="desktop"
+		value="<%=request.getParameter("desktop") %>" />
 </form>
 </body>
 </html>

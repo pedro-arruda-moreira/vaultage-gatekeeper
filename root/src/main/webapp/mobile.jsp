@@ -18,6 +18,8 @@
 		<input type="hidden" name="type" value="token" />
 		<input type="hidden" name="value"
 			value="<%=request.getAttribute(ChannelDecidingServlet.TOKEN_KEY) %>" />
+		<input type="hidden" name="desktop"
+			value="<%=request.getAttribute(ChannelDecidingServlet.DESKTOP_MODE_KEY) %>" />
 	</form>
 </body>
 </html>

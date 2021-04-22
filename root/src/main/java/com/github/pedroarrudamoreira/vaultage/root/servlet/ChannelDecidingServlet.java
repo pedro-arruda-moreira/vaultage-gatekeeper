@@ -22,6 +22,8 @@ import lombok.Setter;
 public class ChannelDecidingServlet extends HttpServlet implements ServletContextAware {
 
 	public static final String TOKEN_KEY = "token";
+	
+	public static final String DESKTOP_MODE_KEY = "__DESKTOP_MODE__";
 
 	/**
 	 * 
@@ -43,17 +45,29 @@ public class ChannelDecidingServlet extends HttpServlet implements ServletContex
 	public void setMobilePattern(String mobilePattern) {
 		this.mobilePattern = Pattern.compile(mobilePattern);
 	}
+	@Setter
+	private boolean useCliForDesktop;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		String userAgent = req.getHeader("User-Agent").toUpperCase();
 
 		if(mobilePattern.matcher(userAgent).matches()) {
-			req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken(TokenType.GLOBAL));
-			getMobileDispatcher().forward(req, resp);
+			sendToPWA(req, resp, false);
 		} else {
-			getVaultageCliDispatcher().forward(req, resp);
+			if(useCliForDesktop) {
+				getVaultageCliDispatcher().forward(req, resp);
+			} else {
+				sendToPWA(req, resp, true);
+			}
 		}
+	}
+
+	private void sendToPWA(HttpServletRequest req, HttpServletResponse resp,
+			boolean desktopMode) throws IOException, ServletException {
+		req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken(TokenType.GLOBAL));
+		req.setAttribute(DESKTOP_MODE_KEY, String.valueOf(desktopMode));
+		getMobileDispatcher().forward(req, resp);
 	}
 
 }

@@ -12,6 +12,10 @@ import lombok.Setter;
 @Setter
 @JsonSerialize
 public class CryptoData implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String pin;
 	private String genKey;
 	@JsonIgnore

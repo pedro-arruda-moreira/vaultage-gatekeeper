@@ -86,6 +86,7 @@
 		id="channelDecidingServlet">
 		<property name="mobilePattern"
 			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
+		<property name="useCliForDesktop" value="${desktop.use_cli:false}"/>
 	</bean>
 	
 	
