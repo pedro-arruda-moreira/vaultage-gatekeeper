@@ -1,6 +1,9 @@
 package com.github.pedroarrudamoreira.vaultage.root.service.email;
 
 import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -16,6 +19,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
@@ -24,8 +29,9 @@ import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Getter;
 import lombok.Setter;
-
-public class EmailService implements InitializingBean {
+import lombok.extern.apachecommons.CommonsLog;
+@CommonsLog
+public class EmailService implements InitializingBean, DisposableBean {
 	static final String USE_START_TLS_KEY = "mail.smtp.starttls.enable";
 	static final String SMTP_PORT_KEY = "mail.smtp.port";
 	static final String USE_AUTH_KEY = "mail.smtp.auth";
@@ -55,6 +61,9 @@ public class EmailService implements InitializingBean {
 	private EasySSLSocketFactory sslContextFactory;
 	@Getter @Setter
 	private boolean enabled;
+	
+	private ThreadPoolExecutor mailer = new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
+			new BasicThreadFactory.Builder().daemon(true).namingPattern("vaultage email thread").build());
 
 	private Properties emailProperties;
 	
@@ -92,7 +101,13 @@ public class EmailService implements InitializingBean {
 
 
 		message.setContent(multipart);
-		Transport.send(message);
+		mailer.execute(() -> {
+			try {
+				Transport.send(message);
+			} catch (MessagingException e) {
+				log.error("Error while sending email", e);
+			}
+		});
 	}
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -129,6 +144,11 @@ public class EmailService implements InitializingBean {
 
 		session.setDebug(debug);
 		return session;
+	}
+
+	@Override
+	public void destroy() throws Exception {
+		mailer.shutdown();
 	}
 
 }

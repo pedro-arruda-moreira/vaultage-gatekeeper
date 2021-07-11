@@ -143,6 +143,7 @@ public class EmailServiceTest {
 				mimeMessageMock).setContent(Mockito.any());
 		impl.sendEmail(FAKE_SUBJECT, FAKE_EMAIL_CONTENT, null);
 		Mockito.verify(mimeMessageMock).setFrom();
+		Thread.sleep(500);
 		PowerMockito.verifyStatic(Transport.class);
 		Transport.send(mimeMessageMock);
 		Assert.assertEquals(1, obtainedMultipart.get().getCount());
@@ -173,6 +174,7 @@ public class EmailServiceTest {
 		Assert.assertEquals(FAKE_PASSWORD, access.getPassword());
 		Assert.assertEquals(FAKE_EMAIL_ADDRESS, access.getUserName());
 		Mockito.verify(mimeMessageMock).setFrom();
+		Thread.sleep(500);
 		PowerMockito.verifyStatic(Transport.class);
 		Transport.send(mimeMessageMock);
 		final MimeMultipart multipart = obtainedMultipart.get();
