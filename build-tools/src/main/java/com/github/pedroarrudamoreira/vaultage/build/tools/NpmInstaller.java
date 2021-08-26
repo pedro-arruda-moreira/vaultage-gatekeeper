@@ -3,7 +3,7 @@ package com.github.pedroarrudamoreira.vaultage.build.tools;
 import java.io.IOException;
 
 import com.github.pedroarrudamoreira.vaultage.build.tools.utils.FileOperations;
-import com.github.pedroarrudamoreira.vaultage.build.tools.utils.ProcessSpawner;
+import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
 
 public class NpmInstaller {
 

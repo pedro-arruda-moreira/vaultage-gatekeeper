@@ -46,8 +46,6 @@ public class EmailService implements InitializingBean, DisposableBean {
 	private boolean useAuth;
 	@Setter
 	private String smtpUsername;
-	@Setter
-	private String addressToSend;
 	private String password;
 	@Setter
 	private boolean debug;
@@ -78,7 +76,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 	}
 
 	
-	public void sendEmail(final String subject, String emailContent, DataSource attachment)
+	public void sendEmail(final String addressToSend, final String subject, String emailContent, DataSource attachment)
 			throws MessagingException, AddressException {
 		Message message = ObjectFactory.buildMimeMessage(configureSession());
 		message.setFrom();
@@ -112,7 +110,6 @@ public class EmailService implements InitializingBean, DisposableBean {
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if(enabled) {
-			Assert.notNull(addressToSend, "addressToSend required.");
 			Assert.notNull(smtpHost, "smtpHost required.");
 			Assert.notNull(smtpPort, "smtpPort required.");
 			Assert.notNull(smtpUsername, "smtpUsername required.");

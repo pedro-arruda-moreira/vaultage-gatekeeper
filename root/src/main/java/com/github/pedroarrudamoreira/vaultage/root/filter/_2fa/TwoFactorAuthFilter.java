@@ -21,6 +21,7 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
 import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.util.EmailCollector;
+import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -42,6 +43,9 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 	static final String EMAIL_SENT_KEY = "__EMAIL_SENT_%%$$";
 	
 	private EmailService emailService;
+	
+	private AuthenticationProvider authProvider;
+	
 	private String thisServerHost;
 
 	private ServletContext servletContext;
@@ -100,7 +104,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 					request.setAttribute(EMAIL_TEMPLATE_SERVER_HOST_KEY, formatFormAction(request));
 					String emailContent = extractEmailContent(request, response).toString();
 
-					emailService.sendEmail(SUBJECT, emailContent, null);
+					emailService.sendEmail(authProvider.getCurrentUser().getEmail(), SUBJECT, emailContent, null);
 					httpSession.setAttribute(EMAIL_SENT_KEY, ObjectFactory.PRESENT);
 
 				}

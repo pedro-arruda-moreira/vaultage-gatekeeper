@@ -19,8 +19,8 @@
 
 	<modules>
 		<module>test-util</module>
-		<module>build-tools</module>
 		<module>common</module>
+		<module>build-tools</module>
 		<module>root</module>
 		<module>pwa</module>
 		<module>ear</module>

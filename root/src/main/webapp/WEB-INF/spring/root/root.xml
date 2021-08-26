@@ -7,28 +7,17 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<sec:http use-expressions="true" >
-		<sec:csrf disabled="true"/>
-		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
-		<sec:http-basic />
-		<sec:custom-filter ref="compositeFilter" after="LAST"/>
-	</sec:http>
 	
-	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
+	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.listener.Starter">
-		<property name="users" value="${vaultage.users}" />
-		<property name="port" value="${vaultage.port:3000}" />
+		<property name="userProvider" ref="authProvider" />
 	</bean>
 	
-	<bean id="backupService"
-		class="com.github.pedroarrudamoreira.vaultage.root.service.backup.BackupService">
-		<property name="enabled" value="${backup.enabled}"/>
-		<property name="doEncrypt" value="${backup.encrypt}"/>
-		<property name="thisServerHost" value="${server.host}"/>
-		<property name="type" value="${backup.type:startup}"/>
-		<property name="emailService" ref="emailService"/>
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.ProxyServlet" id="proxyServlet">
+		<property name="userProvider" ref="authProvider" />
 	</bean>
+
 		
 	<bean id="emailService" class="com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService">
 		<property name="enabled" value="${email.enabled:#{false}}"/>
@@ -56,32 +45,6 @@
 		</property>
 	</bean>
 	
-	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
-		<property name="filters">
-			<list>
-				<bean
-					class="com.github.pedroarrudamoreira.vaultage.root.filter._2fa.TwoFactorAuthFilter">
-					<property name="enabled" value="${2fa.enabled:#{false}}"/>
-					<property name="thisServerHost" value="${server.host}"/>
-					<property name="emailService" ref="emailService"/>
-				</bean>
-	
-				<bean
-					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-					<property name="maxSessionsPerDay"
-						value="${security.max-sessions-per-day:7}" />
-					<property name="maxSessionsPerHour"
-						value="${security.max-sessions-per-hour:5}" />
-					<property name="maxLoginAttemptsPerSession"
-						value="${security.max-attempts-per-session:3}" />
-					<property name="sessionDurationInHours"
-						value="${security.session-duration-in-hours:72}" />
-					<property name="secure" value="${security.https-enabled:true}" />
-				</bean>
-			</list>
-		</property>
-	</bean>
-	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.servlet.ChannelDecidingServlet"
 		id="channelDecidingServlet">
 		<property name="mobilePattern"
@@ -89,15 +52,5 @@
 		<property name="useCliForDesktop" value="${desktop.use_cli:false}"/>
 	</bean>
 	
-	
-
-	<sec:authentication-manager>
-		<sec:authentication-provider>
-			<sec:user-service>
-				<sec:user name="${security.basic_user}" password="{noop}${security.basic_password}"
-					authorities="ROLE_USER" />
-			</sec:user-service>
-		</sec:authentication-provider>
-	</sec:authentication-manager>
 
 </beans>

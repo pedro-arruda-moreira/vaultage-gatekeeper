@@ -7,6 +7,7 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
 	<http use-expressions="true">
 		<csrf disabled="true" />
 		<intercept-url pattern="/auth" access="permitAll" />
@@ -26,7 +27,6 @@
 		<custom-filter ref="disableSecurity" before="FIRST"/>
 		<custom-filter ref="sessionController" after="LAST"/>
 	</http>
-	<context:property-placeholder location="file:${user.home}/vaultage-security-facade.properties"/>
 	
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.TokenService"
 		name="tokenService">
