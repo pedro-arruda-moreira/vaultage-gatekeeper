@@ -26,7 +26,6 @@
 		<property name="smtpHost" value="${email.server_host:#{null}}"/>
 		<property name="smtpPort" value="${email.server_port:#{null}}"/>
 		<property name="smtpUsername" value="${email.username:#{null}}"/>
-		<property name="addressToSend" value="${email.address:#{null}}"/>
 		<property name="password" value="${email.server_password:#{null}}"/>
 		<property name="thisServerHost" value="${server.host}"/>
 		<property name="useStartTls" value="${email.use_start_tls:#{true}}"/>

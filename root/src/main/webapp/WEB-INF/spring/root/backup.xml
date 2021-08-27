@@ -17,5 +17,32 @@
 		<property name="type" value="${backup.type:startup}"/>
 		<property name="emailService" ref="emailService"/>
 	</bean>
+	
+	<bean id="jobDetail"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.github.pedroarrudamoreira.vaultage.root.service.backup.BackupService"/>
+		<property name="description" value="Backup Job"/>
+		<property name="durability" value="true"/>
+	</bean>
+	
+	<bean id="trigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean" >
+		<property name="name" value="backup trigger"/>
+		<property name="group" value="Backup"/>
+		<property name="jobDetail" ref="jobDetail"/>
+		<property name="cronExpression" value="${backup.cron_expression:0 0 4 ? * 0}"/>
+	</bean>
+	
+	<bean id="scheduler"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+		<property name="jobDetails" ref="jobDetail"/>
+		<property name="triggers" ref="trigger"/>
+		<property name="jobFactory" ref="jobFactory"/>
+		<property name="configLocation"
+			value="classpath:com/github/pedroarrudamoreira/vaultage/root/service/backup/quartz.properties"/>
+	</bean>
+	
+	<bean id="jobFactory" class="org.springframework.scheduling.quartz.SpringBeanJobFactory"/>
+	
 
 </beans>

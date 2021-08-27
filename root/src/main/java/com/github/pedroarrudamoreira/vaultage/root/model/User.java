@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,5 +30,13 @@ public class User {
 	
 	@JsonProperty
 	private Map<String, Object> backupConfig;
+	
+	public String getDataDir() {
+		if(dataDir == null) {
+			dataDir = SessionController.getApplicationContext().getEnvironment().resolvePlaceholders(
+					"${user.dir}/.vaultage");
+		}
+		return dataDir;
+	}
 	
 }
