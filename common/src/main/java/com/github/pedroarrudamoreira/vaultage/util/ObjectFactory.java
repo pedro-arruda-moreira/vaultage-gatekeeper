@@ -46,8 +46,12 @@ public class ObjectFactory {
 		return UUID.randomUUID().toString();
 	}
 	
-	public static File buildFile(File parent, String child) {
-		return new File(parent, child);
+	public static File buildFile(String path) {
+		return buildFile(null, path);
+	}
+	
+	public static File buildFile(File parent, String name) {
+		return new File(parent, name);
 	}
 
 }

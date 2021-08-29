@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.filter._2fa.util;
+package com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.util;
 
 import java.io.IOException;
 import java.io.PrintWriter;

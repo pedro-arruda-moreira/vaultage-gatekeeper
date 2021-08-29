@@ -14,7 +14,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.pedroarrudamoreira.vaultage.root.model.User;
+import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 
 import lombok.Getter;
 import lombok.Setter;

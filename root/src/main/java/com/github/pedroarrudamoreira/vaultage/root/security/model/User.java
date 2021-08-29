@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.model;
+package com.github.pedroarrudamoreira.vaultage.root.security.model;
 
 import java.util.Map;
 
@@ -34,7 +34,7 @@ public class User {
 	public String getDataDir() {
 		if(dataDir == null) {
 			dataDir = SessionController.getApplicationContext().getEnvironment().resolvePlaceholders(
-					"${user.dir}/.vaultage");
+					"${user.home}/.vaultage");
 		}
 		return dataDir;
 	}

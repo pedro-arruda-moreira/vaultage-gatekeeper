@@ -1,12 +1,12 @@
-package com.github.pedroarrudamoreira.vaultage.root.servlet;
+package com.github.pedroarrudamoreira.vaultage.root.redirector.servlet;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpHost;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
-import com.github.pedroarrudamoreira.vaultage.root.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
+import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 
 import lombok.Setter;
 

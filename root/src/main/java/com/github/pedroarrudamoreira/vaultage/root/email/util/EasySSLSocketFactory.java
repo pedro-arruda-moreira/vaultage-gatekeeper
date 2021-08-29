@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.service.email.util;
+package com.github.pedroarrudamoreira.vaultage.root.email.util;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

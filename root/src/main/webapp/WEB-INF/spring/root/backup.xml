@@ -10,17 +10,28 @@
 
 	
 	<bean id="backupService"
-		class="com.github.pedroarrudamoreira.vaultage.root.service.backup.BackupService">
+		class="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService">
 		<property name="enabled" value="${backup.enabled}"/>
 		<property name="doEncrypt" value="${backup.encrypt}"/>
 		<property name="thisServerHost" value="${server.host}"/>
-		<property name="type" value="${backup.type:startup}"/>
-		<property name="emailService" ref="emailService"/>
+		<property name="authProvider" ref="authProvider"/>
+		<property name="providers">
+			<map>
+				<entry key="file">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.FileCopyProvider"/>
+				</entry>
+				<entry key="email">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.EmailAttachmentProvider">
+						<property name="emailService" ref="emailService"/>
+					</bean>
+				</entry>
+			</map>
+		</property>
 	</bean>
 	
 	<bean id="jobDetail"
 		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
-		<property name="jobClass" value="com.github.pedroarrudamoreira.vaultage.root.service.backup.BackupService"/>
+		<property name="jobClass" value="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService"/>
 		<property name="description" value="Backup Job"/>
 		<property name="durability" value="true"/>
 	</bean>

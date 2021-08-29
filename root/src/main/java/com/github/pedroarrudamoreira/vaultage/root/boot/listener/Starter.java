@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.listener;
+package com.github.pedroarrudamoreira.vaultage.root.boot.listener;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;

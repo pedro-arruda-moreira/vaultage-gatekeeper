@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.servlet;
+package com.github.pedroarrudamoreira.vaultage.root.redirector.servlet;
 
 import java.io.IOException;
 import java.util.regex.Pattern;

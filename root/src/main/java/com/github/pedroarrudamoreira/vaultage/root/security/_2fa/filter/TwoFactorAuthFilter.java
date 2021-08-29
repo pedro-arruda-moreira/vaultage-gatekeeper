@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.filter._2fa;
+package com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -20,9 +20,9 @@ import org.springframework.web.context.ServletContextAware;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
-import com.github.pedroarrudamoreira.vaultage.root.filter._2fa.util.EmailCollector;
+import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-import com.github.pedroarrudamoreira.vaultage.root.service.email.EmailService;
+import com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.util.EmailCollector;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.AccessLevel;

@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.root.service.email;
+package com.github.pedroarrudamoreira.vaultage.root.email.service;
 
 import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,7 +24,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
-import com.github.pedroarrudamoreira.vaultage.root.service.email.util.EasySSLSocketFactory;
+import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Getter;
