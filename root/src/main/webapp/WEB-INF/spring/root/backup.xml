@@ -50,7 +50,7 @@
 		<property name="triggers" ref="trigger"/>
 		<property name="jobFactory" ref="jobFactory"/>
 		<property name="configLocation"
-			value="classpath:com/github/pedroarrudamoreira/vaultage/root/service/backup/quartz.properties"/>
+			value="classpath:com/github/pedroarrudamoreira/vaultage/root/backup/service/quartz.properties"/>
 	</bean>
 	
 	<bean id="jobFactory" class="org.springframework.scheduling.quartz.SpringBeanJobFactory"/>
