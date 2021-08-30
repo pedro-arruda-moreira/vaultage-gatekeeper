@@ -6,29 +6,40 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+
 import lombok.extern.apachecommons.CommonsLog;
 @CommonsLog
 public class ProcessSpawner {
+	
+	private static final AtomicInteger PROCESS_COUNTER = new AtomicInteger(0);
+	
 	private ProcessSpawner() {
 		super();
 	}
 
+	public static void executeProcessAndWait(ExecutorService service, String ... command) throws Exception {
+		tryExecution(service, command, retVal -> retVal == 0, StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe");
+	}
+
 	public static void executeProcessAndWait(String ... command) throws Exception {
-		tryExecution(command, retVal -> retVal == 0, StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe");
+		tryExecution(null, command, retVal -> retVal == 0, StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe");
 	}
 
 	public static void executeProcessAndWait(IntFunction<Boolean> failureCodeHandler,
 			String ... command) throws Exception {
-		tryExecution(command, failureCodeHandler, StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe");
+		tryExecution(null, command, failureCodeHandler, StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe");
 	}
 
-	private static void tryExecution(String[] command,
+	private static void tryExecution(ExecutorService service, String[] command,
 			IntFunction<Boolean> failureCodeHandler, String ... suffixes) throws Exception {
 		String[] realCommand = new String[command.length];
 		System.arraycopy(command, 1, realCommand, 1, command.length - 1);
@@ -36,7 +47,7 @@ public class ProcessSpawner {
 		for(String suffix : suffixes) {
 			realCommand[0] = command[0] + suffix;
 			try {
-				doExecute(realCommand, failureCodeHandler);
+				doExecute(service, realCommand, failureCodeHandler);
 				return;
 			} catch (IOException e) {
 				caughEx = e;
@@ -45,12 +56,14 @@ public class ProcessSpawner {
 		throw caughEx;
 	}
 
-	private static void doExecute(String[] command,
+	private static void doExecute(ExecutorService service, String[] command,
 			IntFunction<Boolean> failureCodeHandler) throws Exception {
 		Process process = Runtime.getRuntime().exec(command);
 		String commandString = String.join(" ", command);
-		buildLogThread(process.getInputStream(), commandString, Level.INFO);
-		buildLogThread(process.getErrorStream(), commandString, Level.SEVERE);
+		final int processNumber = PROCESS_COUNTER.incrementAndGet();
+		log.info(String.format("Process number %d is [%s]", processNumber, commandString));
+		buildLogThread(process, commandString, Level.INFO, service, processNumber);
+		buildLogThread(process, commandString, Level.SEVERE, service, processNumber);
 		int retVal = process.waitFor();
 		if(!failureCodeHandler.apply(retVal)) {
 			throw new RuntimeException(String.format("command %s failed with status %d",
@@ -58,22 +71,29 @@ public class ProcessSpawner {
 		}
 	}
 
-	private static void buildLogThread(InputStream input, String commandString, Level level) throws UnsupportedEncodingException {
+	private static void buildLogThread(Process process, String commandString, Level level,
+			ExecutorService service, int processNumber) throws UnsupportedEncodingException {
 		InputStreamReader isr = null;
+		InputStream input;
+		if(level == Level.INFO) {
+			input = process.getInputStream();
+		} else {
+			input = process.getErrorStream();
+		}
 		if(SystemUtils.IS_OS_WINDOWS) {
 			isr = new InputStreamReader(input, "IBM850");
 		} else {
 			isr = new InputStreamReader(input);
 		}
 		BufferedReader br = new BufferedReader(isr);
-		new Thread(() -> {
+		Runnable logRunnable = () -> {
 			try {
 				String line = null;
-				while ((line = br.readLine()) != null) {
+				while (process.isAlive() && (line = br.readLine()) != null) {
 					if(StringUtils.isBlank(line)) {
 						continue;
 					}
-					Object logLine = buildLog(commandString, line);
+					Object logLine = buildLog(processNumber, line);
 					if(level == Level.INFO) {
 						log.info(logLine);
 					} else {
@@ -83,14 +103,19 @@ public class ProcessSpawner {
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
-		}, buildThreadName(commandString, level)).start();
+		};
+		if(service != null) {
+			service.execute(logRunnable);
+		} else {
+			ObjectFactory.buildThread(logRunnable, buildThreadName(processNumber, level)).start();
+		}
 	}
 
-	private static String buildThreadName(String commandString, Level level) {
-		return String.format("logger-thread-[%s] (%s)", commandString, level);
+	private static String buildThreadName(int processNumber, Level level) {
+		return String.format("logger-thread-[%d] (%s)", processNumber, level);
 	}
 
-	private static Object buildLog(String commandString, String line) {
-		return String.format("\n[%s]\n  -> [%s]", commandString, line);
+	private static Object buildLog(int processNumber, String line) {
+		return String.format("[%d]  -> [%s]", processNumber, line);
 	}
 }

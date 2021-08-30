@@ -1,8 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.Filter;
@@ -21,8 +19,8 @@ import javax.servlet.http.HttpSessionListener;
 
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.ServletContextAware;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
@@ -51,8 +49,6 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	
 	private static final AtomicInteger REMAINING_DAY_SESSIONS = ObjectFactory.buildAtomicInteger(900);
 	
-	private static final ConcurrentMap<ClassLoader, ServletContext> LOADED_CONTEXTS = new ConcurrentHashMap<>();
-
 	private static int maxSessionsPerHour = -1;
 	
 	private static int maxSessionsPerDay = -1;
@@ -112,12 +108,8 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 		return REQUESTS.get().getAttribute(ORIGINAL_URL).toString();
 	}
 	
-	public static ServletContext getCurrentContext() {
-		return LOADED_CONTEXTS.get(Thread.currentThread().getContextClassLoader());
-	}
-	
 	public static ApplicationContext getApplicationContext() {
-		return WebApplicationContextUtils.getWebApplicationContext(getCurrentContext());
+		return ContextLoaderListener.getCurrentWebApplicationContext();
 	}
 	
 	@Setter
@@ -141,7 +133,6 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 
 	@Override
 	public void setServletContext(ServletContext servletContext) {
-		LOADED_CONTEXTS.put(Thread.currentThread().getContextClassLoader(), servletContext);
 		servletContext.addListener(this);
 		servletContext.setSessionTimeout(sessionDurationInHours * ONE_HOUR_MINUTES);
 		SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();

@@ -1,9 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.root.email.service;
 
 import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -19,7 +17,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
@@ -60,8 +57,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 	@Getter @Setter
 	private boolean enabled;
 	
-	private ThreadPoolExecutor mailer = new ThreadPoolExecutor(1, 1, 10, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-			new BasicThreadFactory.Builder().daemon(true).namingPattern("vaultage email thread").build());
+	private ExecutorService mailer = ObjectFactory.createDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
 
 	private Properties emailProperties;
 	
