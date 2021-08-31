@@ -16,7 +16,7 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 import lombok.Setter;
@@ -31,7 +31,7 @@ public class Starter implements ServletContextAware, InitializingBean {
 	public void setServletContext(ServletContext servletContext) {
 		Map<String, User> users = userProvider.getUsers();
 		int threadCount = users.size() * 3;
-		final ExecutorService vaultageServerExecutor = ObjectFactory.buildDaemonExecutorService(threadCount, threadCount, 10,
+		final ExecutorService vaultageServerExecutor = RootObjectFactory.buildDaemonExecutorService(threadCount, threadCount, 10,
 				"vaultage-server controlling thread %d");
 		doConfigureServersAndRedirects(servletContext, users, vaultageServerExecutor);
 	}

@@ -22,6 +22,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
+import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Getter;
@@ -57,7 +58,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 	@Getter @Setter
 	private boolean enabled;
 	
-	private ExecutorService mailer = ObjectFactory.buildDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
+	private ExecutorService mailer = RootObjectFactory.buildDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
 
 	private Properties emailProperties;
 	
@@ -74,7 +75,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 	
 	public void sendEmail(final String addressToSend, final String subject, String emailContent, DataSource attachment)
 			throws MessagingException, AddressException {
-		Message message = ObjectFactory.buildMimeMessage(configureSession());
+		Message message = RootObjectFactory.buildMimeMessage(configureSession());
 		message.setFrom();
 
 		Address[] toUser = InternetAddress.parse(addressToSend);
@@ -132,7 +133,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 				}
 			};
 		}
-		session = ObjectFactory.buildEmailSession(emailProperties,
+		session = RootObjectFactory.buildEmailSession(emailProperties,
 				authenticator);
 
 		session.setDebug(debug);

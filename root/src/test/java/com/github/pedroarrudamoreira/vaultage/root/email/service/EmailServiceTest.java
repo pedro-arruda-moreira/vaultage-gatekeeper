@@ -28,11 +28,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
+import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, Session.class, Transport.class})
+@PrepareForTest({ObjectFactory.class, Session.class, Transport.class, RootObjectFactory.class})
 public class EmailServiceTest {
 	private static final String FAKE_EMAIL_CONTENT = "hello!";
 	private static final String FAKE_SUBJECT = "Greetings";
@@ -74,12 +75,12 @@ public class EmailServiceTest {
 	public void setup() {
 		setupStatic();
 		properties = new Properties();
-		PowerMockito.when(ObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
+		PowerMockito.when(RootObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
 		PowerMockito.when(ObjectFactory.buildProperties()).thenReturn(properties);
-		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
+		PowerMockito.when(RootObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
 						v -> obtainedAuthenticator = v.get(), 1));
-		PowerMockito.when(ObjectFactory.buildDaemonExecutorService(Mockito.eq(1),
+		PowerMockito.when(RootObjectFactory.buildDaemonExecutorService(Mockito.eq(1),
 				Mockito.eq(1), Mockito.eq(10), Mockito.any())).thenReturn(mockExecutorService);
 		Mockito.doAnswer((i) -> {
 			i.getArgument(0, Runnable.class).run();
