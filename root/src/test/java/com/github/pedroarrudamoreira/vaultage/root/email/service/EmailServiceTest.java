@@ -1,6 +1,7 @@
-package com.github.pedroarrudamoreira.vaultage.root.service.email;
+package com.github.pedroarrudamoreira.vaultage.root.email.service;
 
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.activation.DataSource;
@@ -26,7 +27,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.github.pedroarrudamoreira.vaultage.root.service.email.util.EasySSLSocketFactory;
+import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -61,6 +62,9 @@ public class EmailServiceTest {
 	@Mock
 	private DataSource mockDataSource;
 	
+	@Mock
+	private ExecutorService mockExecutorService;
+	
 	@BeforeClass
 	public static void setupStatic() {
 		TestUtils.doPrepareForTest();
@@ -69,16 +73,21 @@ public class EmailServiceTest {
 	@Before
 	public void setup() {
 		setupStatic();
-		impl = new EmailService();
-		impl.setSslContextFactory(mockSslFactory);
-		impl.setAddressToSend(FAKE_EMAIL_ADDRESS);
-		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
 		properties = new Properties();
 		PowerMockito.when(ObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
 		PowerMockito.when(ObjectFactory.buildProperties()).thenReturn(properties);
 		PowerMockito.when(ObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
 						v -> obtainedAuthenticator = v.get(), 1));
+		PowerMockito.when(ObjectFactory.buildDaemonExecutorService(Mockito.eq(1),
+				Mockito.eq(1), Mockito.eq(10), Mockito.any())).thenReturn(mockExecutorService);
+		Mockito.doAnswer((i) -> {
+			i.getArgument(0, Runnable.class).run();
+			return null;
+		}).when(mockExecutorService).execute(Mockito.any());
+		impl = new EmailService();
+		impl.setSslContextFactory(mockSslFactory);
+		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
 	}
 	
 	
@@ -141,9 +150,8 @@ public class EmailServiceTest {
 		AtomicReference<MimeMultipart> obtainedMultipart = new AtomicReference<>();
 		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedMultipart.set(v.get()), 0)).when(
 				mimeMessageMock).setContent(Mockito.any());
-		impl.sendEmail(FAKE_SUBJECT, FAKE_EMAIL_CONTENT, null);
+		impl.sendEmail(FAKE_EMAIL_ADDRESS, FAKE_SUBJECT, FAKE_EMAIL_CONTENT, null);
 		Mockito.verify(mimeMessageMock).setFrom();
-		Thread.sleep(500);
 		PowerMockito.verifyStatic(Transport.class);
 		Transport.send(mimeMessageMock);
 		Assert.assertEquals(1, obtainedMultipart.get().getCount());
@@ -168,13 +176,12 @@ public class EmailServiceTest {
 		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> obtainedMultipart.set(v.get()), 0)).when(
 				mimeMessageMock).setContent(Mockito.any());
 		Mockito.when(mockDataSource.getName()).thenReturn(FAKE_FILE_NAME);
-		impl.sendEmail(FAKE_SUBJECT, FAKE_EMAIL_CONTENT, mockDataSource);
+		impl.sendEmail(FAKE_EMAIL_ADDRESS, FAKE_SUBJECT, FAKE_EMAIL_CONTENT, mockDataSource);
 		final PasswordAuthentication access = AuthenticatorAccessor.access(
 				obtainedAuthenticator);
 		Assert.assertEquals(FAKE_PASSWORD, access.getPassword());
 		Assert.assertEquals(FAKE_EMAIL_ADDRESS, access.getUserName());
 		Mockito.verify(mimeMessageMock).setFrom();
-		Thread.sleep(500);
 		PowerMockito.verifyStatic(Transport.class);
 		Transport.send(mimeMessageMock);
 		final MimeMultipart multipart = obtainedMultipart.get();

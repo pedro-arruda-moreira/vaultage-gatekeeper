@@ -60,7 +60,7 @@ public class ObjectFactory {
 		return new File(parent, name);
 	}
 	
-	public static ExecutorService createDaemonExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
+	public static ExecutorService buildDaemonExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
 		return new ThreadPoolExecutor(min, max, timeoutMinutes, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
 				new BasicThreadFactory.Builder().daemon(true).namingPattern(namingPattern).build());
 	}

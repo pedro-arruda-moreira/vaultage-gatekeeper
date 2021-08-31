@@ -57,7 +57,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 	@Getter @Setter
 	private boolean enabled;
 	
-	private ExecutorService mailer = ObjectFactory.createDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
+	private ExecutorService mailer = ObjectFactory.buildDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
 
 	private Properties emailProperties;
 	

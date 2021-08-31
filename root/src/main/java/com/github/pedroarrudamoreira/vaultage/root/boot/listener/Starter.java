@@ -31,7 +31,7 @@ public class Starter implements ServletContextAware, InitializingBean {
 	public void setServletContext(ServletContext servletContext) {
 		Map<String, User> users = userProvider.getUsers();
 		int threadCount = users.size() * 3;
-		final ExecutorService vaultageServerExecutor = ObjectFactory.createDaemonExecutorService(threadCount, threadCount, 10,
+		final ExecutorService vaultageServerExecutor = ObjectFactory.buildDaemonExecutorService(threadCount, threadCount, 10,
 				"vaultage-server controlling thread %d");
 		doConfigureServersAndRedirects(servletContext, users, vaultageServerExecutor);
 	}
