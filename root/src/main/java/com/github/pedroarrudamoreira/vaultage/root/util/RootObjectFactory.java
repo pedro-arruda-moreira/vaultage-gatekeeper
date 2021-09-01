@@ -3,6 +3,8 @@ package com.github.pedroarrudamoreira.vaultage.root.util;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,6 +47,10 @@ public class RootObjectFactory {
 	
 	public static ByteArrayInputStream buildByteArrayInputStream(byte[] content) {
 		return new ByteArrayInputStream(content);
+	}
+	
+	public static FileOutputStream buildFileOutputStream(File file) throws FileNotFoundException {
+		return new FileOutputStream(file);
 	}
 
 }

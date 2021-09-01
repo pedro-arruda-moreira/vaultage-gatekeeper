@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.root.security.model;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
@@ -14,6 +15,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
+	private static final int DEFAULT_VAULTAGE_PORT = 3000;
+
 	@JsonProperty("data-dir")
 	private String dataDir;
 	
@@ -32,17 +35,20 @@ public class User {
 	@JsonProperty("backup-config")
 	private Map<String, Object> backupConfig;
 	
+	@JsonIgnore
+	private String userId;
+	
 	public String getDataDir() {
 		if(dataDir == null) {
-			dataDir = ObjectFactory.normalizePath(SessionController.getApplicationContext().getEnvironment().resolvePlaceholders(
-					"${user.home}/.vaultage"));
+			dataDir = ObjectFactory.normalizePath(SessionController.getApplicationContext(
+					).getEnvironment().resolvePlaceholders("${user.home}/.vaultage"));
 		}
 		return dataDir;
 	}
 	
 	public Integer getPort() {
 		if(port == null) {
-			port = 3000;
+			port = DEFAULT_VAULTAGE_PORT;
 		}
 		return port;
 	}

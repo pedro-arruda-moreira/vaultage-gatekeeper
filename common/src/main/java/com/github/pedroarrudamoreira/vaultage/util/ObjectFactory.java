@@ -43,7 +43,7 @@ public class ObjectFactory {
 	}
 	
 	public static String normalizePath(String path) {
-		return new File(path).getAbsolutePath();
+		return buildFile(path).getAbsolutePath();
 	}
 
 }

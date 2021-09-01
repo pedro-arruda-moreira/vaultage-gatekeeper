@@ -36,6 +36,10 @@ import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 @PowerMockIgnore({"javax.security.*"})
 public class AuthenticationProviderTest {
 	
+	private static final String USER_ID_FOR_USER_1 = "test1";
+
+	private static final String USER_ID_FOR_USER_2 = "test2";
+
 	private static final AuthenticationProvider impl = new AuthenticationProvider();
 	
 	@Mock
@@ -67,15 +71,16 @@ public class AuthenticationProviderTest {
 		impl.afterPropertiesSet();
 		Map<String, User> users = impl.getUsers();
 		Assert.assertEquals(2, users.size());
-		User obtainedUser2 = users.get("test2");
+		User obtainedUser2 = users.get(USER_ID_FOR_USER_2);
 		Assert.assertEquals(3100, (int) obtainedUser2.getPort());
-		Assert.assertEquals("example@example.com", users.get("test1").getEmail());
+		Assert.assertEquals(USER_ID_FOR_USER_2, obtainedUser2.getUserId());
+		Assert.assertEquals("example@example.com", users.get(USER_ID_FOR_USER_1).getEmail());
 		Assert.assertEquals("test@test.com", ((List<String>)obtainedUser2.getBackupConfig().get("email")).get(0));
 	}
 	
 	@Test
 	public void test002_loadUserByUsername_ExistingOne() throws Exception {
-		UserDetails springUser = impl.loadUserByUsername("test2");
+		UserDetails springUser = impl.loadUserByUsername(USER_ID_FOR_USER_2);
 		Assert.assertEquals("{noop}password", springUser.getPassword());
 	}
 	
@@ -87,9 +92,9 @@ public class AuthenticationProviderTest {
 	@Test
 	public void test004_getCurrentUser() throws Exception {
 		Mockito.when(securityContextMock.getAuthentication()).thenReturn(authMock);
-		Mockito.when(authMock.getName()).thenReturn("test2");
+		Mockito.when(authMock.getName()).thenReturn(USER_ID_FOR_USER_2);
 		User obtainedUser = impl.getCurrentUser();
-		User expectedUser = impl.getUsers().get("test2");
+		User expectedUser = impl.getUsers().get(USER_ID_FOR_USER_2);
 		Assert.assertEquals(expectedUser, obtainedUser);
 	}
 

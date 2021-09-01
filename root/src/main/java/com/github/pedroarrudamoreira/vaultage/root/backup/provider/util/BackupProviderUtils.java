@@ -40,7 +40,7 @@ public final class BackupProviderUtils {
 	}
 	public static String createFileName(User vaultageUser) {
 		return String.format("vaultage_backup_%s_%s.zip",
-				vaultageUser.getVaultageUsername(),
+				vaultageUser.getUserId(),
 				new SimpleDateFormat("yyyyMMdd").format(new Date()));
 	}
 

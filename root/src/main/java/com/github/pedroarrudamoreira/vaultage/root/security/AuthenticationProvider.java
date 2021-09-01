@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class AuthenticationProvider implements UserDetailsService, InitializingBean {
+	private static final TypeReference<Map<String, User>> USER_TYPE_REF = new TypeReference<Map<String, User>>() {};
 	@Setter
 	private Resource userConfigFile;
 	@Getter
@@ -54,7 +55,8 @@ public class AuthenticationProvider implements UserDetailsService, InitializingB
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		users = new ObjectMapper().readValue(userConfigFile.getFile(), new TypeReference<Map<String, User>>() {});
+		users = new ObjectMapper().readValue(userConfigFile.getFile(), USER_TYPE_REF);
+		users.forEach((k,v) -> v.setUserId(k));
 	}
 
 }
