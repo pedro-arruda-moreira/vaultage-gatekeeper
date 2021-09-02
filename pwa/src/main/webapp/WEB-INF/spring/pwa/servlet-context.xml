@@ -28,17 +28,17 @@
 		<custom-filter ref="sessionController" after="LAST"/>
 	</http>
 	
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.TokenService"
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.service.TokenService"
 		name="tokenService">
 		<beans:property name="cryptoType" value="${mobile.crypto_type:offline}"/>
 	</beans:bean>
 		
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.filter.DisableSecurityFilter"
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.filter.DisableSecurityFilter"
 		id="disableSecurity">
 		<beans:property name="enabled" value="${mobile.security_disabled:false}"/>
 	</beans:bean>
 	
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.servlet.crypto.OnlineCryptoServlet"
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.crypto.servlet.OnlineCryptoServlet"
 		id="onlineCryptoServlet">
 		<beans:property name="attempts" value="${mobile.online_pin_attempts:5}"/>
 	</beans:bean>

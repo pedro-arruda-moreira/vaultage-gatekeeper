@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.pwa.filter;
+package com.github.pedroarrudamoreira.vaultage.pwa.security.filter;
 
 import java.io.IOException;
 
@@ -10,12 +10,14 @@ import javax.servlet.ServletResponse;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
 
+import lombok.extern.apachecommons.CommonsLog;
+@CommonsLog
 public class DisableSecurityFilter extends SwitchingFilter {
 
 	@Override
 	protected void doFilterImpl(ServletRequest request, ServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
-		request.getServletContext().log("CAUTION: PWA security is disabled!");
+		log.warn("PWA security is disabled!");
 		request.getRequestDispatcher(SessionController.getOriginalUrl().replace(
 				"/pwa/", "/")).forward(request, response);
 	}

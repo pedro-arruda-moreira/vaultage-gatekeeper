@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.pwa.security;
+package com.github.pedroarrudamoreira.vaultage.pwa.security.service;
 
 import java.util.Arrays;
 import java.util.UUID;

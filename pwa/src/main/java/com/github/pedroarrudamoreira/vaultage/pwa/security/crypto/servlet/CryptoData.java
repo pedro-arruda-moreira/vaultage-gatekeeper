@@ -1,4 +1,4 @@
-package com.github.pedroarrudamoreira.vaultage.pwa.servlet.crypto;
+package com.github.pedroarrudamoreira.vaultage.pwa.security.crypto.servlet;
 
 import java.io.Serializable;
 
