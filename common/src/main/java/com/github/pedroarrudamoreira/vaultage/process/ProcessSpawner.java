@@ -67,7 +67,7 @@ public class ProcessSpawner {
 		int retVal = process.waitFor();
 		if(!failureCodeHandler.apply(retVal)) {
 			throw new RuntimeException(String.format("command %s failed with status %d",
-					Arrays.deepToString(command), retVal));
+					commandString, retVal));
 		}
 	}
 
