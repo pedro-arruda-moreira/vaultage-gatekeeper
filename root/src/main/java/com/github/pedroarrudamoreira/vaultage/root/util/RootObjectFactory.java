@@ -25,8 +25,17 @@ public class RootObjectFactory {
 	}
 	
 	public static ExecutorService buildDaemonExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
+		return buildExecutorService(min, max, timeoutMinutes, namingPattern, true);
+	}
+	
+	public static ExecutorService buildExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
+		return buildExecutorService(min, max, timeoutMinutes, namingPattern, false);
+	}
+	
+	private static ExecutorService buildExecutorService(int min, int max, int timeoutMinutes, String namingPattern,
+			boolean daemon) {
 		return new ThreadPoolExecutor(min, max, timeoutMinutes, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-				new BasicThreadFactory.Builder().daemon(true).namingPattern(namingPattern).build());
+				new BasicThreadFactory.Builder().daemon(daemon).namingPattern(namingPattern).build());
 	}
 	
 	public static Session buildEmailSession(Properties properties, Authenticator authenticator) {
