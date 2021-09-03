@@ -107,7 +107,7 @@ public class Starter implements ServletContextAware, DisposableBean {
 					token[0] = spl[1];
 				},
 				vaultageServerExecutor,
-				"vaultage-server",
+				"vaultage-wrapper",
 				"-p",
 				user.getPort().toString(),
 				"-d",
