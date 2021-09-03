@@ -25,10 +25,13 @@ function startServer() {
 
 expressServer.post('/', (req, res) => {
     const body = req.body as any;
-    if(body.token == serverShutdownToken) {
+    const receivedToken = body.token;
+    if(receivedToken == serverShutdownToken) {
         res.send('OK');
+        console.log('Received valid shutdown token. stopping server!');
         process.exit(0);
     } else {
+        console.log(`[${receivedToken}] does not match [${serverShutdownToken}]`);
         res.send('wrong-token');
     }
 });

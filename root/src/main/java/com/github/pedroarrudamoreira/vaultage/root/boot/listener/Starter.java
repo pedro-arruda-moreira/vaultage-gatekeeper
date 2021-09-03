@@ -1,5 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.root.boot.listener;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,6 +12,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 
+import org.apache.http.HttpHost;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.web.context.ServletContextAware;
 
@@ -18,6 +25,7 @@ import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
+import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 import lombok.Setter;
@@ -71,7 +79,7 @@ public class Starter implements ServletContextAware, DisposableBean {
 							SystemStatus status = obtainSystemStatus(vaultageServer);
 							switch (status) {
 							case SHUTTING_DOWN:
-								shutDownServer(port[0], token[0]);
+								shutDownServer(port[0], token[0], vaultageServer);
 								processCount.decrementAndGet();
 								return;
 							case RESTART_VAULTAGE_SERVER:
@@ -92,9 +100,20 @@ public class Starter implements ServletContextAware, DisposableBean {
 	}
 
 
-	private void shutDownServer(int port, String token) {
-		// TODO Auto-generated method stub
+	private void shutDownServer(int port, String token, Process process) throws Exception {
 		
+		HttpPost post = new HttpPost();
+		StringEntity entity = new StringEntity(String.format("{\"token\":\"%s\"}", token));
+		entity.setContentType("application/json");
+		post.setEntity(entity);
+		CloseableHttpResponse response = HttpClientBuilder.create().build().execute(new HttpHost("127.0.0.1", port), post);
+		InputStream content = response.getEntity().getContent();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		IOUtils.copy(content, baos);
+		if(!"OK".equals(new String(baos.toByteArray()))) {
+			log.warn(String.format("could not finish vaultage server on port %d", port));
+		}
+		response.close();
 	}
 
 
