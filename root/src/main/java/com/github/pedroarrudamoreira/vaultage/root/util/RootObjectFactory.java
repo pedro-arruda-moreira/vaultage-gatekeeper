@@ -6,36 +6,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.mail.Authenticator;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
 
 public class RootObjectFactory {
 	private RootObjectFactory() {
 		super();
-	}
-	
-	public static ExecutorService buildDaemonExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
-		return buildExecutorService(min, max, timeoutMinutes, namingPattern, true);
-	}
-	
-	public static ExecutorService buildExecutorService(int min, int max, int timeoutMinutes, String namingPattern) {
-		return buildExecutorService(min, max, timeoutMinutes, namingPattern, false);
-	}
-	
-	private static ExecutorService buildExecutorService(int min, int max, int timeoutMinutes, String namingPattern,
-			boolean daemon) {
-		return new ThreadPoolExecutor(min, max, timeoutMinutes, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-				new BasicThreadFactory.Builder().daemon(daemon).namingPattern(namingPattern).build());
 	}
 	
 	public static Session buildEmailSession(Properties properties, Authenticator authenticator) {

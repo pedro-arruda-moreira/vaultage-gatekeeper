@@ -1,7 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.root.email.service;
 
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -17,19 +16,19 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.Assert;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 @CommonsLog
-public class EmailService implements InitializingBean, DisposableBean {
+public class EmailService implements InitializingBean {
 	static final String USE_START_TLS_KEY = "mail.smtp.starttls.enable";
 	static final String SMTP_PORT_KEY = "mail.smtp.port";
 	static final String USE_AUTH_KEY = "mail.smtp.auth";
@@ -58,8 +57,6 @@ public class EmailService implements InitializingBean, DisposableBean {
 	@Getter @Setter
 	private boolean enabled;
 	
-	private ExecutorService mailer = RootObjectFactory.buildDaemonExecutorService(1, 1, 10, "vaultage email sender thread");
-
 	private Properties emailProperties;
 	
 	public boolean isAuthenticationConfigured() {
@@ -96,7 +93,7 @@ public class EmailService implements InitializingBean, DisposableBean {
 
 
 		message.setContent(multipart);
-		mailer.execute(() -> {
+		EventLoop.execute(() -> {
 			try {
 				Transport.send(message);
 			} catch (MessagingException e) {
@@ -138,11 +135,6 @@ public class EmailService implements InitializingBean, DisposableBean {
 
 		session.setDebug(debug);
 		return session;
-	}
-
-	@Override
-	public void destroy() throws Exception {
-		mailer.shutdown();
 	}
 
 }

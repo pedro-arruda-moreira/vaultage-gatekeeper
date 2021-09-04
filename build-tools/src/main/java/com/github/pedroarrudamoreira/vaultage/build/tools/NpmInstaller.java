@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import com.github.pedroarrudamoreira.vaultage.build.tools.utils.FileOperations;
 import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 public class NpmInstaller {
@@ -33,6 +34,8 @@ public class NpmInstaller {
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
+		} finally {
+			EventLoop.shutdown();
 		}
 	}
 

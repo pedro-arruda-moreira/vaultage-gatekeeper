@@ -24,5 +24,19 @@ public class IOUtils {
 		}	
 		return result;
 	}
+	
+	public static int copy(InputStream i, OutputStream o, int limit) throws IOException {
+		if(i instanceof ByteArrayInputStream && i.available() == 0) {
+			i.reset();
+		}
+		int result = 0;
+		int len = -1;
+		byte[] buff = new byte[limit];
+		while(result < limit && (len = i.read(buff)) > 0) {
+			o.write(buff, 0, len);
+			result += len;
+		}	
+		return result;
+	}
 
 }

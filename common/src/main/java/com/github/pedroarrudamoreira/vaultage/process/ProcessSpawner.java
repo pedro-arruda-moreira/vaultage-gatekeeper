@@ -1,20 +1,24 @@
 package com.github.pedroarrudamoreira.vaultage.process;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,25 +33,23 @@ public class ProcessSpawner {
 	
 	private static final String [] SUFFIXES = new String[] {StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe"};
 	
-	private final ExecutorService service;
-	
 	private final String[] command;
 	
 	private final IntFunction<Boolean> failureCodeHandler;
 	
 	private final Consumer<String> logConsumer;
 
-	public static Process executeProcess(Consumer<String> logConsumer, ExecutorService service, String ... command) throws Exception {
-		return new ProcessSpawner(service, command, DEFAULT_FAILURE_HANDLER, logConsumer).tryExecution(false);
+	public static Process executeProcess(Consumer<String> logConsumer, String ... command) throws Exception {
+		return new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, logConsumer).tryExecution(false);
 	}
 
 	public static void executeProcessAndWait(String ... command) throws Exception {
-		new ProcessSpawner(null, command, DEFAULT_FAILURE_HANDLER, null).tryExecution(true);
+		new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, null).tryExecution(true);
 	}
 
 	public static void executeProcessAndWait(IntFunction<Boolean> failureCodeHandler,
 			String ... command) throws Exception {
-		new ProcessSpawner(null, command, DEFAULT_FAILURE_HANDLER, null).tryExecution(true);
+		new ProcessSpawner(command, failureCodeHandler, null).tryExecution(true);
 	}
 
 	private Process tryExecution(boolean doWait) throws Exception {
@@ -85,23 +87,17 @@ public class ProcessSpawner {
 
 	private void buildLogThread(Process process, String commandString, Level level,
 			int processNumber) throws UnsupportedEncodingException {
-		InputStreamReader isr = null;
 		InputStream input;
-		if(level == Level.INFO) {
-			input = process.getInputStream();
-		} else {
-			input = process.getErrorStream();
-		}
-		if(SystemUtils.IS_OS_WINDOWS) {
-			isr = new InputStreamReader(input, "IBM850");
-		} else {
-			isr = new InputStreamReader(input);
-		}
-		BufferedReader br = new BufferedReader(isr);
-		Runnable logRunnable = () -> {
+		input = getStream(process, level);
+		Supplier<Boolean> logRunnable = () -> {
 			try {
+				int availableBytes = input.available();
+				if(availableBytes < 1) {
+					return process.isAlive();
+				}
+				BufferedReader br = getBytesFromStreamAsReader(input, availableBytes);
 				String line = null;
-				while (process.isAlive() && (line = br.readLine()) != null) {
+				while((line = br.readLine()) != null) {
 					if(StringUtils.isBlank(line)) {
 						continue;
 					}
@@ -119,16 +115,39 @@ public class ProcessSpawner {
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}
+			return process.isAlive();
 		};
-		if(service != null) {
-			service.execute(logRunnable);
-		} else {
-			ObjectFactory.buildThread(logRunnable, buildThreadName(processNumber, level)).start();
-		}
+		EventLoop.repeatTask(logRunnable, 700l, TimeUnit.MILLISECONDS);
 	}
 
-	private static String buildThreadName(int processNumber, Level level) {
-		return String.format("logger-thread-[%d] (%s)", processNumber, level);
+	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)
+			throws IOException, UnsupportedEncodingException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		IOUtils.copy(input, baos, availableBytes);
+		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+		InputStreamReader isr = buildReader(bais);
+		BufferedReader br = new BufferedReader(isr, 1);
+		return br;
+	}
+
+	private InputStream getStream(Process process, Level level) {
+		InputStream input;
+		if(level == Level.INFO) {
+			input = process.getInputStream();
+		} else {
+			input = process.getErrorStream();
+		}
+		return input;
+	}
+
+	private InputStreamReader buildReader(InputStream input) throws UnsupportedEncodingException {
+		InputStreamReader isr;
+		if(SystemUtils.IS_OS_WINDOWS) {
+			isr = new InputStreamReader(input, "IBM850");
+		} else {
+			isr = new InputStreamReader(input);
+		}
+		return isr;
 	}
 
 	private static Object buildLog(int processNumber, String line) {
