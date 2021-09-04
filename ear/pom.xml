@@ -7,29 +7,29 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.github.pedro-arruda-moreira</groupId>
-		<artifactId>vaultage-web-app</artifactId>
+		<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+		<artifactId>gatekeeper-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>vaultage-web-app-ear</artifactId>
+	<artifactId>gatekeeper-ear</artifactId>
 	<packaging>ear</packaging>
 
 
 	<dependencies>
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-common</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-common</artifactId>
 			<version>1.0.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-root</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-root</artifactId>
 			<version>1.0.0</version>
 			<type>war</type>
 		</dependency>
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-pwa</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-pwa</artifactId>
 			<version>1.0.0</version>
 			<type>war</type>
 		</dependency>
@@ -46,15 +46,15 @@
 					<defaultLibBundleDir>/lib</defaultLibBundleDir>
 					<modules>
 						<webModule>
-							<groupId>com.github.pedro-arruda-moreira</groupId>
-							<artifactId>vaultage-web-app-root</artifactId>
-							<uri>/vaultage-web-app-root-1.0.0.war</uri>
+							<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+							<artifactId>gatekeeper-root</artifactId>
+							<uri>/gatekeeper-root-1.0.0.war</uri>
 							<contextRoot>/</contextRoot>
 						</webModule>
 						<webModule>
-							<groupId>com.github.pedro-arruda-moreira</groupId>
-							<artifactId>vaultage-web-app-pwa</artifactId>
-							<uri>/vaultage-web-app-pwa-1.0.0.war</uri>
+							<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+							<artifactId>gatekeeper-pwa</artifactId>
+							<uri>/gatekeeper-pwa-1.0.0.war</uri>
 							<contextRoot>/pwa</contextRoot>
 						</webModule>
 					</modules>
