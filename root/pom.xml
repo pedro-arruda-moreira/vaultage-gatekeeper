@@ -6,11 +6,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.github.pedro-arruda-moreira</groupId>
-		<artifactId>vaultage-web-app</artifactId>
+		<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+		<artifactId>gatekeeper-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>vaultage-web-app-root</artifactId>
+	<artifactId>gatekeeper-root</artifactId>
 	<packaging>war</packaging>
 
 
@@ -89,8 +89,8 @@
 
 		<!-- Provided dependencies -->
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-common</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-common</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>
 		</dependency>
@@ -112,14 +112,14 @@
 
 		<!-- test dependencies -->
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-test-util</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-test-util</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-build-tools</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-build-tools</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

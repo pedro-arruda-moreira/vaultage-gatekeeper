@@ -5,8 +5,8 @@
     http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.pedro-arruda-moreira</groupId>
-	<artifactId>vaultage-web-app</artifactId>
+	<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+	<artifactId>gatekeeper-parent</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 

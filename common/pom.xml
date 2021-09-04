@@ -6,11 +6,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.github.pedro-arruda-moreira</groupId>
-		<artifactId>vaultage-web-app</artifactId>
+		<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+		<artifactId>gatekeeper-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
-	<artifactId>vaultage-web-app-common</artifactId>
+	<artifactId>gatekeeper-common</artifactId>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -48,8 +48,8 @@
 		</dependency>
 		<!-- test -->
 		<dependency>
-			<groupId>com.github.pedro-arruda-moreira</groupId>
-			<artifactId>vaultage-web-app-test-util</artifactId>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-test-util</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
