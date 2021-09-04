@@ -17,6 +17,7 @@
 					<property name="enabled" value="${2fa.enabled:#{false}}"/>
 					<property name="thisServerHost" value="${server.host}"/>
 					<property name="emailService" ref="emailService"/>
+					<property name="authProvider" ref="authProvider"/>
 				</bean>
 	
 				<bean
