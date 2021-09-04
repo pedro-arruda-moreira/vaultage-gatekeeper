@@ -4,6 +4,9 @@ import java.io.File;
 
 import org.apache.commons.lang3.SystemUtils;
 
+import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+
 public class FileOperations {
 
 	private FileOperations() {
@@ -16,16 +19,16 @@ public class FileOperations {
 			ProcessSpawner.executeProcessAndWait(
 					retVal -> retVal <= 7,
 					"robocopy",
-					normalizePath(origin),
-					normalizePath(destination),
+					ObjectFactory.normalizePath(origin),
+					ObjectFactory.normalizePath(destination),
 					"/E"
 					);
 		} else {
 			ProcessSpawner.executeProcessAndWait(
 					"cp",
 					"-r",
-					normalizePath(origin),
-					normalizePath(destination)
+					ObjectFactory.normalizePath(origin),
+					ObjectFactory.normalizePath(destination)
 					);
 		}
 	}
@@ -46,10 +49,6 @@ public class FileOperations {
 			return false;
 		}
 		return true;
-	}
-
-	public static String normalizePath(String path) {
-		return new File(path).getAbsolutePath();
 	}
 
 }

@@ -1,0 +1,55 @@
+<beans
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	
+	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
+	
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.boot.listener.Starter">
+		<property name="userProvider" ref="authProvider" />
+	</bean>
+	
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ProxyServlet" id="proxyServlet">
+		<property name="userProvider" ref="authProvider" />
+	</bean>
+
+		
+	<bean id="emailService" class="com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService">
+		<property name="enabled" value="${email.enabled:#{false}}"/>
+		<property name="useAuth" value="${email.use_auth:#{false}}"/>
+		<property name="debug" value="#{false}"/>
+		<property name="smtpHost" value="${email.server_host:#{null}}"/>
+		<property name="smtpPort" value="${email.server_port:#{null}}"/>
+		<property name="smtpUsername" value="${email.username:#{null}}"/>
+		<property name="password" value="${email.server_password:#{null}}"/>
+		<property name="thisServerHost" value="${server.host}"/>
+		<property name="useStartTls" value="${email.use_start_tls:#{true}}"/>
+		<property name="sslContextFactory">
+			<bean
+				class="com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory">
+				<constructor-arg value="${email.ssl.protocol:TLS}" index="0"/>
+				<constructor-arg value="${email.ssl.trustStoreLocation:#{null}}" index="1"/>
+				<constructor-arg value="${email.ssl.trustStorePassword:#{null}}" index="2"/>
+				<constructor-arg value="${email.ssl.keyStoreLocation:#{null}}" index="3"/>
+				<constructor-arg value="${email.ssl.keyStorePassword:#{null}}" index="4"/>
+				<constructor-arg value="${email.ssl.keyStorePrivateKey:#{null}}" index="5"/>
+				<property name="trustAllHosts" value="${email.ssl.trustAllHosts:false}"/>
+				<property name="trustedHosts" value="${email.ssl.trustedHosts:#{null}}"/>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ChannelDecidingServlet"
+		id="channelDecidingServlet">
+		<property name="mobilePattern"
+			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
+		<property name="useCliForDesktop" value="${desktop.use_cli:false}"/>
+	</bean>
+	
+
+</beans>

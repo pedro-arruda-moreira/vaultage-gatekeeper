@@ -1,6 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.Filter;
@@ -18,10 +19,12 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.ServletContextAware;
 
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 import lombok.Setter;
 
@@ -41,39 +44,28 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	
 	private static final int ONE_HOUR_SECONDS = ONE_HOUR_MINUTES * 60;
 
-	private static final int ONE_HOUR_MILLIS = ONE_HOUR_SECONDS * 1000;
-	
 	private static final AtomicInteger REMAINING_HOUR_SESSIONS = ObjectFactory.buildAtomicInteger(500);
 	
 	private static final AtomicInteger REMAINING_DAY_SESSIONS = ObjectFactory.buildAtomicInteger(900);
-
+	
 	private static int maxSessionsPerHour = -1;
 	
 	private static int maxSessionsPerDay = -1;
 
 	private static int maxLoginAttemptsPerSession = -1;
 	static {
-		Thread cleanThread = ObjectFactory.buildThread(() -> {
-			int count = 0;
-			while (true) {
-				try {
-					ThreadControl.sleep(ONE_HOUR_MILLIS);
-					REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
-					count++;
-					if(count >= 24) {
-						count = 0;
-						REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
-					}
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-				
+		final int[] count = new int[1];
+		EventLoop.repeatTask(() -> {
+			REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
+			count[0]++;
+			if(count[0] >= 24) {
+				count[0] = 0;
+				REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
 			}
-		}, "vaultage session limiter thread");
-		cleanThread.setDaemon(true);
-		cleanThread.start();
+			return true;
+		}, 1, TimeUnit.HOURS);
 	}
-	
+
 	public static synchronized void setMaxSessionsPerDay(int maxSessionsPerDay) {
 		if(SessionController.maxSessionsPerDay != -1) {
 			return;
@@ -104,6 +96,10 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 
 	public static String getOriginalUrl() {
 		return REQUESTS.get().getAttribute(ORIGINAL_URL).toString();
+	}
+	
+	public static ApplicationContext getApplicationContext() {
+		return ContextLoaderListener.getCurrentWebApplicationContext();
 	}
 	
 	@Setter

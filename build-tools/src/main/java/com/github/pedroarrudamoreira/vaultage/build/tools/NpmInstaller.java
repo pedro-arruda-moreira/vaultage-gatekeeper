@@ -3,7 +3,9 @@ package com.github.pedroarrudamoreira.vaultage.build.tools;
 import java.io.IOException;
 
 import com.github.pedroarrudamoreira.vaultage.build.tools.utils.FileOperations;
-import com.github.pedroarrudamoreira.vaultage.build.tools.utils.ProcessSpawner;
+import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 public class NpmInstaller {
 
@@ -15,8 +17,8 @@ public class NpmInstaller {
 				throw new RuntimeException("NPM is required for this program to be compiled.");
 			}
 			String npmPackage = args[0];
-			String locationToInstall = FileOperations.normalizePath(args[1]);
-			String subFolderWithContents = FileOperations.normalizePath(
+			String locationToInstall = ObjectFactory.normalizePath(args[1]);
+			String subFolderWithContents = ObjectFactory.normalizePath(
 					locationToInstall + '/' + args[2]);
 			ProcessSpawner.executeProcessAndWait(
 					"npm",
@@ -32,6 +34,8 @@ public class NpmInstaller {
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(1);
+		} finally {
+			EventLoop.shutdown();
 		}
 	}
 

@@ -1,6 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
@@ -29,12 +30,12 @@ import org.springframework.security.core.context.SecurityContext;
 
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 @RunWith(PowerMockRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ObjectFactory.class, ThreadControl.class})
+@PrepareForTest({ObjectFactory.class, EventLoop.class})
 @PowerMockRunnerDelegate(JUnit4.class)
 public class SessionControllerTest {
 
@@ -58,42 +59,16 @@ public class SessionControllerTest {
 
 	private SessionController impl;
 
-	private static int sleepCount;
-
-	private static boolean isStarted = false;
-	private static Thread mockThread = new Thread() {
-		public synchronized void start() {
-			isStarted = true;
-		}
-	};
-
 	private static AtomicInteger remainingPerHour = new AtomicInteger(10);
 
 	private static AtomicInteger remainingPerDay = new AtomicInteger(10);
 
-	private static Runnable obtainedRunnable;
-
-	private static class Stop extends RuntimeException {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
-
-	}
+	private static Supplier<Boolean> obtainedRunnable;
 	@BeforeClass
 	public static void setupStatic() throws Exception {
 		TestUtils.doPrepareForTest();
-		PowerMockito.when(ObjectFactory.buildThread(Mockito.any(), Mockito.any())).then(
-				new ArgumentCatcher<Thread>(mockThread, v -> obtainedRunnable = v.get(), 0));
-		PowerMockito.doAnswer(inv -> {
-			sleepCount--;
-			if(sleepCount < 0) {
-				throw new Stop();
-			}
-			return null;
-		}).when(ThreadControl.class);
-		ThreadControl.sleep(Mockito.anyLong());
+		PowerMockito.doAnswer(new ArgumentCatcher<Void>(null, v -> obtainedRunnable = v.get(), 0)).when(EventLoop.class);
+		EventLoop.repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.any());
 		PowerMockito.when(ObjectFactory.buildAtomicInteger(500)).thenReturn(remainingPerHour);
 		PowerMockito.when(ObjectFactory.buildAtomicInteger(900)).thenReturn(remainingPerDay);
 	}
@@ -107,9 +82,8 @@ public class SessionControllerTest {
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
 	}
 	@Test
-	public void test000CheckThreadCreation() {
-		Assert.assertTrue(isStarted);
-		Assert.assertTrue(mockThread.isDaemon());
+	public void test000CheckTaskCreation() {
+		Assert.assertNotNull(obtainedRunnable);
 	}
 
 	@Test
@@ -138,19 +112,14 @@ public class SessionControllerTest {
 
 	@Test
 	public void test003CreateSessionsExpireDay() {
+		doExecuteRunnable(1);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
 		try {
-			sleepCount = 1;
-			obtainedRunnable.run();
-			Assert.fail("did not stop");
-		} catch (Stop e) {
 			impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
-			try {
-				impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
-				Assert.fail("exception expected.");
-			} catch (UndeclaredThrowableException e1) {
-				Mockito.verify(httpSessionMock).invalidate();
-				Assert.assertEquals(SecurityException.class, e1.getCause().getClass());
-			}
+			Assert.fail("exception expected.");
+		} catch (UndeclaredThrowableException e1) {
+			Mockito.verify(httpSessionMock).invalidate();
+			Assert.assertEquals(SecurityException.class, e1.getCause().getClass());
 		}
 	}
 
@@ -270,14 +239,15 @@ public class SessionControllerTest {
 		Mockito.when(httpSessionMock.getAttribute(
 				"login_attempts_remaining")).then(inv -> attempts[0]);
 	}
+	
+	private void doExecuteRunnable(int count) {
+		for(int i = 0; i < count; i++) {
+			Assert.assertTrue("should always return true", obtainedRunnable.get());
+		}
+	}
 
 	private void resetAttempts() {
-		try {
-			sleepCount = 24;
-			obtainedRunnable.run();
-			Assert.fail("did not stop");
-		} catch (Stop e) {
-		}
+		doExecuteRunnable(24);
 	}
 
 

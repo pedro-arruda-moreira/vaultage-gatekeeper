@@ -1,0 +1,59 @@
+<beans
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+	
+	<bean id="backupService"
+		class="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService">
+		<property name="enabled" value="${backup.enabled}"/>
+		<property name="doEncrypt" value="${backup.encrypt}"/>
+		<property name="thisServerHost" value="${server.host}"/>
+		<property name="authProvider" ref="authProvider"/>
+		<property name="providers">
+			<map>
+				<entry key="file">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.FileCopyProvider"/>
+				</entry>
+				<entry key="email">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.EmailAttachmentProvider">
+						<property name="emailService" ref="emailService"/>
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="jobDetail"
+		class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService"/>
+		<property name="description" value="Backup Job"/>
+		<property name="durability" value="true"/>
+	</bean>
+	
+	<bean id="trigger"
+		class="org.springframework.scheduling.quartz.CronTriggerFactoryBean" >
+		<property name="name" value="backup trigger"/>
+		<property name="group" value="Backup"/>
+		<property name="jobDetail" ref="jobDetail"/>
+		<property name="cronExpression" value="${backup.cron_expression:0 0 4 ? * 0}"/>
+	</bean>
+	
+	<bean id="scheduler"
+		class="org.springframework.scheduling.quartz.SchedulerFactoryBean" >
+		<property name="jobDetails" ref="jobDetail"/>
+		<property name="triggers" ref="trigger"/>
+		<property name="jobFactory" ref="jobFactory"/>
+		<property name="configLocation"
+			value="classpath:com/github/pedroarrudamoreira/vaultage/root/backup/service/quartz.properties"/>
+	</bean>
+	
+	<bean id="jobFactory" class="org.springframework.scheduling.quartz.SpringBeanJobFactory"/>
+	
+
+</beans>

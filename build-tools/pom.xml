@@ -12,6 +12,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
 			<artifactId>vaultage-web-app-test-util</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
