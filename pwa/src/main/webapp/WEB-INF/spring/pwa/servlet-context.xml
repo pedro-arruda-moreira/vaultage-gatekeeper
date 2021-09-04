@@ -1,0 +1,56 @@
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
+	<http use-expressions="true">
+		<csrf disabled="true" />
+		<intercept-url pattern="/auth" access="permitAll" />
+		<intercept-url pattern="/blocked.html" access="permitAll" />
+		<intercept-url pattern="/**" access="isAuthenticated()" />
+		<form-login login-page="/blocked.html" login-processing-url="/auth"
+			username-parameter="type"
+			password-parameter="value"
+			authentication-success-forward-url="/success.jsp"
+			authentication-failure-forward-url="/blocked.html" />
+		<headers>
+			<cache-control disabled="true"/>
+			<frame-options/>
+			<hsts/>
+			<xss-protection/>
+		</headers>
+		<custom-filter ref="disableSecurity" before="FIRST"/>
+		<custom-filter ref="sessionController" after="LAST"/>
+	</http>
+	
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.service.TokenService"
+		name="tokenService">
+		<beans:property name="cryptoType" value="${mobile.crypto_type:offline}"/>
+	</beans:bean>
+		
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.filter.DisableSecurityFilter"
+		id="disableSecurity">
+		<beans:property name="enabled" value="${mobile.security_disabled:false}"/>
+	</beans:bean>
+	
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.crypto.servlet.OnlineCryptoServlet"
+		id="onlineCryptoServlet">
+		<beans:property name="attempts" value="${mobile.online_pin_attempts:5}"/>
+	</beans:bean>
+
+	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController"
+		id="sessionController">
+		<beans:property name="sessionDurationInHours" value="${security.session-duration-in-hours:72}" />
+		<beans:property name="secure" value="${security.https-enabled:true}" />
+	</beans:bean>
+
+	<authentication-manager>
+		<authentication-provider user-service-ref="tokenService" />
+	</authentication-manager>
+
+</beans:beans>

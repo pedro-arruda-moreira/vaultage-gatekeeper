@@ -1,0 +1,66 @@
+<?xml version='1.0' encoding='utf-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.github.pedro-arruda-moreira</groupId>
+		<artifactId>vaultage-web-app</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>vaultage-web-app-ear</artifactId>
+	<packaging>ear</packaging>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-common</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-root</artifactId>
+			<version>1.0.0</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-pwa</artifactId>
+			<version>1.0.0</version>
+			<type>war</type>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-ear-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<defaultLibBundleDir>/lib</defaultLibBundleDir>
+					<modules>
+						<webModule>
+							<groupId>com.github.pedro-arruda-moreira</groupId>
+							<artifactId>vaultage-web-app-root</artifactId>
+							<uri>/vaultage-web-app-root-1.0.0.war</uri>
+							<contextRoot>/</contextRoot>
+						</webModule>
+						<webModule>
+							<groupId>com.github.pedro-arruda-moreira</groupId>
+							<artifactId>vaultage-web-app-pwa</artifactId>
+							<uri>/vaultage-web-app-pwa-1.0.0.war</uri>
+							<contextRoot>/pwa</contextRoot>
+						</webModule>
+					</modules>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

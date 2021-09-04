@@ -1,0 +1,53 @@
+<beans
+	xmlns:sec="http://www.springframework.org/schema/security"
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	
+	
+	
+	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
+		<property name="filters">
+			<list>
+				<bean
+					class="com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter">
+					<property name="enabled" value="${2fa.enabled:#{false}}"/>
+					<property name="thisServerHost" value="${server.host}"/>
+					<property name="emailService" ref="emailService"/>
+				</bean>
+	
+				<bean
+					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
+					<property name="maxSessionsPerDay"
+						value="${security.max-sessions-per-day:7}" />
+					<property name="maxSessionsPerHour"
+						value="${security.max-sessions-per-hour:5}" />
+					<property name="maxLoginAttemptsPerSession"
+						value="${security.max-attempts-per-session:3}" />
+					<property name="sessionDurationInHours"
+						value="${security.session-duration-in-hours:72}" />
+					<property name="secure" value="${security.https-enabled:true}" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="authProvider" class="com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider">
+		<property name="userConfigFile" value="file:${user.home}/vaultage-security-facade/users.json"></property>
+	</bean>
+	
+	<sec:http use-expressions="true" >
+		<sec:csrf disabled="true"/>
+		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
+		<sec:http-basic />
+		<sec:custom-filter ref="compositeFilter" after="LAST"/>
+	</sec:http>
+	
+
+	<sec:authentication-manager>
+		<sec:authentication-provider user-service-ref="authProvider"/>
+	</sec:authentication-manager>
+</beans>

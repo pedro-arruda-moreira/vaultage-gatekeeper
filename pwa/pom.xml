@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.pedro-arruda-moreira</groupId>
+		<artifactId>vaultage-web-app</artifactId>
+		<version>1.0.0</version>
+	</parent>
+	<artifactId>vaultage-web-app-pwa</artifactId>
+	<packaging>war</packaging>
+
+
+	<dependencies>
+
+
+		<!-- Provided -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>4.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-common</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-build-tools</artifactId>
+			<version>1.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- test -->
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira</groupId>
+			<artifactId>vaultage-web-app-test-util</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>download-pwa</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<classpathScope>compile</classpathScope>
+							<mainClass>com.github.pedroarrudamoreira.vaultage.build.tools.NpmInstaller</mainClass>
+							<arguments>
+								<argument>improved-vaultage-pwa</argument>
+								<argument>${project.basedir}/src/main/webapp</argument>
+								<argument>node_modules/improved-vaultage-pwa/dist/improved-vaultage-pwa</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
