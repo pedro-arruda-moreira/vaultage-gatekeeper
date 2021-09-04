@@ -41,7 +41,7 @@
 		<property name="name" value="backup trigger"/>
 		<property name="group" value="Backup"/>
 		<property name="jobDetail" ref="jobDetail"/>
-		<property name="cronExpression" value="${backup.cron_expression:0 0 4 ? * 0}"/>
+		<property name="cronExpression" value="${backup.cron_expression:0 15 4 ? * SUN *}"/>
 	</bean>
 	
 	<bean id="scheduler"
