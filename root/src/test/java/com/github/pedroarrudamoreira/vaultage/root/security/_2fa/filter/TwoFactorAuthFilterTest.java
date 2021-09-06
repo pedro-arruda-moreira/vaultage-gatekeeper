@@ -28,10 +28,11 @@ import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvid
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, TokenManager.class})
+@PrepareForTest({ObjectFactory.class, TokenManager.class, EventLoop.class})
 public class TwoFactorAuthFilterTest {
 	
 	private static final String FAKE_PASSWORD = "myp4ss";
@@ -172,6 +173,11 @@ public class TwoFactorAuthFilterTest {
 		user.setEmail(FAKE_EMAIL_ADDR);
 		Mockito.when(authProvider.getCurrentUser()).thenReturn(user);
 		String[] emailContent = new String[1];
+		PowerMockito.doAnswer((i) -> {
+			i.getArgument(0, Runnable.class).run();
+			return null;
+		}).when(EventLoop.class);
+		EventLoop.execute(Mockito.any());
 		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> emailContent[0] = v.get(), 2)).when(
 				emailServiceMock).sendEmail(Mockito.eq(FAKE_EMAIL_ADDR), Mockito.eq(TwoFactorAuthFilter.SUBJECT), Mockito.any(),
 						Mockito.eq(null));

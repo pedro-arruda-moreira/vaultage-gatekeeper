@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import javax.mail.MessagingException;
 import javax.servlet.FilterChain;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
@@ -23,13 +22,16 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
 import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.AccessLevel;
 import lombok.Cleanup;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
 @Setter
+@CommonsLog
 public class TwoFactorAuthFilter extends SwitchingFilter implements ServletContextAware {
 	static final String EMAIL_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
 	static final String EMAIL_PASSWORD_REQUEST_KEY = "email_password";
@@ -91,25 +93,29 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 			HttpSession httpSession)
 					throws IOException, ServletException {
 
-		try {
-			synchronized (request.getSession()) {
-				if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
-					String token = TokenManager.generateNewToken(TokenType.SESSION);
-					String emailContent = extractEmailContent(token, request);
+		synchronized (httpSession) {
+			if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
+				String token = TokenManager.generateNewToken(TokenType.SESSION);
+				httpSession.setAttribute(EMAIL_SENT_KEY, ObjectFactory.PRESENT);
+				String formAction = formatFormAction(request);
+				String emailAddr = authProvider.getCurrentUser().getEmail();
+				EventLoop.execute(() -> {
+					try {
+						String emailContent = extractEmailContent(token, request, formAction);
 
-					emailService.sendEmail(authProvider.getCurrentUser().getEmail(), SUBJECT, emailContent, null);
-					httpSession.setAttribute(EMAIL_SENT_KEY, ObjectFactory.PRESENT);
+						emailService.sendEmail(emailAddr, SUBJECT, emailContent, null);
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+					}
+				});
 
-				}
 			}
-			getCheckEmailDispatcher().forward(request, response);
-
-		} catch (MessagingException e) {
-			throw new RuntimeException(e);
 		}
+		getCheckEmailDispatcher().forward(request, response);
+
 	}
 
-	private String extractEmailContent(String token, HttpServletRequest request)
+	private String extractEmailContent(String token, HttpServletRequest request, String formAction)
 			throws ServletException, IOException {
 		@Cleanup InputStream htmlStream = TwoFactorAuthFilter.class.getResourceAsStream("email_template.html");
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(htmlStream));
@@ -118,7 +124,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 		while((line = bufferedReader.readLine()) != null) {
 			bld.append(line).append('\n');
 		}
-		return String.format(bld.toString(), formatFormAction(request), token);
+		return String.format(bld.toString(), formAction, token);
 	}
 
 	private String formatFormAction(HttpServletRequest request) {
