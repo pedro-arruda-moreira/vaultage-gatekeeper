@@ -1,5 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
@@ -63,12 +64,16 @@ public class SessionControllerTest {
 
 	private static AtomicInteger remainingPerDay = new AtomicInteger(10);
 
-	private static Supplier<Boolean> obtainedRunnable;
+	private static Supplier<Boolean> hourSupplier;
+
+	private static Supplier<Boolean> daySupplier;
 	@BeforeClass
 	public static void setupStatic() throws Exception {
 		TestUtils.doPrepareForTest();
-		PowerMockito.doAnswer(new ArgumentCatcher<Void>(null, v -> obtainedRunnable = v.get(), 0)).when(EventLoop.class);
-		EventLoop.repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.any());
+		PowerMockito.doAnswer(new ArgumentCatcher<Void>(null, v -> hourSupplier = v.get(), 0)).when(EventLoop.class);
+		EventLoop.repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.eq(TimeUnit.HOURS));
+		PowerMockito.doAnswer(new ArgumentCatcher<Void>(null, v -> daySupplier = v.get(), 0)).when(EventLoop.class);
+		EventLoop.repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.eq(TimeUnit.DAYS));
 		PowerMockito.when(ObjectFactory.buildAtomicInteger(500)).thenReturn(remainingPerHour);
 		PowerMockito.when(ObjectFactory.buildAtomicInteger(900)).thenReturn(remainingPerDay);
 	}
@@ -83,7 +88,7 @@ public class SessionControllerTest {
 	}
 	@Test
 	public void test000CheckTaskCreation() {
-		Assert.assertNotNull(obtainedRunnable);
+		Assert.assertNotNull(hourSupplier);
 	}
 
 	@Test
@@ -145,7 +150,28 @@ public class SessionControllerTest {
 	}
 
 	@Test
-	public void test006AttemptsPerSession() {
+	public void test006PostRequest() {
+
+		resetAttempts();
+		AtomicInteger[] attempts = new AtomicInteger[1];
+		configureAttempts(attempts);
+		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
+		impl.setSecure(false);
+		Mockito.when(httpServletRequestMock.getMethod()).thenReturn("post");
+		ServletRequestEvent sre = new ServletRequestEvent(
+				servletContextMock, httpServletRequestMock);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		impl.requestInitialized(sre);
+		Mockito.verify(httpSessionMock, Mockito.never()).invalidate();
+
+	}
+
+	@Test
+	public void test007AttemptsPerSession() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
@@ -162,7 +188,7 @@ public class SessionControllerTest {
 
 	}
 	@Test
-	public void test007SecureWithNonSecureRequest() {
+	public void test008SecureWithNonSecureRequest() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
@@ -182,7 +208,7 @@ public class SessionControllerTest {
 
 	}
 	@Test
-	public void test008SecureWithSecureRequest() {
+	public void test009SecureWithSecureRequest() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
@@ -203,7 +229,7 @@ public class SessionControllerTest {
 
 	}
 	@Test
-	public void test009AlreadyAuthenticated() {
+	public void test010AlreadyAuthenticated() {
 
 		resetAttempts();
 		AtomicInteger[] attempts = new AtomicInteger[1];
@@ -220,13 +246,13 @@ public class SessionControllerTest {
 	}
 
 	@Test
-	public void test010RequestDestroyed() {
+	public void test011RequestDestroyed() {
 		impl.requestDestroyed(new ServletRequestEvent(servletContextMock, httpServletRequestMock));
 		Assert.assertNull(SessionController.getCurrentRequest());
 	}
 
 	@Test
-	public void test011LoginSuccessful() throws Exception {
+	public void test012LoginSuccessful() throws Exception {
 		impl.doFilter(httpServletRequestMock, null, filterChainMock);
 		Mockito.verify(httpSessionMock).setAttribute(SessionController.LOGGED_ON_KEY, ObjectFactory.PRESENT);
 		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, null);
@@ -242,7 +268,10 @@ public class SessionControllerTest {
 	
 	private void doExecuteRunnable(int count) {
 		for(int i = 0; i < count; i++) {
-			Assert.assertTrue("should always return true", obtainedRunnable.get());
+			Assert.assertTrue("should always return true", hourSupplier.get());
+			if(i > 0 && i % 23 == 0) {
+				Assert.assertTrue("should always return true", daySupplier.get());
+			}
 		}
 	}
 

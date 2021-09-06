@@ -16,8 +16,7 @@ import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
-
+import javax.servlet.http.HttpSessionListener;import org.apache.commons.lang3.StringUtils;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
@@ -27,7 +26,8 @@ import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
-
+import lombok.extern.apachecommons.CommonsLog;
+@CommonsLog
 public class SessionController implements HttpSessionListener, ServletContextAware,
 	ServletRequestListener, Filter {
 	
@@ -54,16 +54,16 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 
 	private static int maxLoginAttemptsPerSession = -1;
 	static {
-		final int[] count = new int[1];
 		EventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - hour");
 			REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
-			count[0]++;
-			if(count[0] >= 24) {
-				count[0] = 0;
-				REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
-			}
 			return true;
 		}, 1, TimeUnit.HOURS);
+		EventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - day");
+			REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
+			return true;
+		}, 1, TimeUnit.DAYS);
 	}
 
 	public static synchronized void setMaxSessionsPerDay(int maxSessionsPerDay) {
@@ -141,6 +141,9 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 			throw new UndeclaredThrowableException(new SecurityException());
 		}
 		if(session.getAttribute(LOGGED_ON_KEY) != null) {
+			return;
+		}
+		if(StringUtils.equalsIgnoreCase(request.getMethod(), "post")) {
 			return;
 		}
 		AtomicInteger attempts = (AtomicInteger) session.getAttribute(LOGIN_ATTEMPTS_REMAINING);

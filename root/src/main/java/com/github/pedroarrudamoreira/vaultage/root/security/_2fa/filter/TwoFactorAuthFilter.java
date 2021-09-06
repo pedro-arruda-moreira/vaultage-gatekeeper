@@ -38,7 +38,6 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 	static final String ALREADY_VALIDATED_KEY = TwoFactorAuthFilter.class.getName() + ".ALL_OK";
 	static final String CHECK_EMAIL_HTML_LOCATION = "/2fa/email/check_email.html";
 	static final String PASSWORD_HTML_LOCATION = "/2fa/email/password.html";
-	static final String EMAIL_TEMPLATE_JSP_LOCATION = "/2fa/email/email_template.jsp";
 	static final String SUBJECT = "Login Attempt from Vaultage";
 
 	public static final String EMAIL_TOKEN_KEY = "email_token";
