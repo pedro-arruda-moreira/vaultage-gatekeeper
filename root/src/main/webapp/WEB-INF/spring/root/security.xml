@@ -13,14 +13,6 @@
 		<property name="filters">
 			<list>
 				<bean
-					class="com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter">
-					<property name="enabled" value="${2fa.enabled:#{false}}"/>
-					<property name="thisServerHost" value="${server.host}"/>
-					<property name="emailService" ref="emailService"/>
-					<property name="authProvider" ref="authProvider"/>
-				</bean>
-	
-				<bean
 					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
 					<property name="maxSessionsPerDay"
 						value="${security.max-sessions-per-day:7}" />
@@ -31,6 +23,14 @@
 					<property name="sessionDurationInHours"
 						value="${security.session-duration-in-hours:72}" />
 					<property name="secure" value="${security.https-enabled:true}" />
+				</bean>
+				
+				<bean
+					class="com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter">
+					<property name="enabled" value="${2fa.enabled:#{false}}"/>
+					<property name="thisServerHost" value="${server.host}"/>
+					<property name="emailService" ref="emailService"/>
+					<property name="authProvider" ref="authProvider"/>
 				</bean>
 			</list>
 		</property>

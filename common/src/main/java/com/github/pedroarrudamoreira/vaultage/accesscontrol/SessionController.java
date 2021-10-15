@@ -16,7 +16,8 @@ import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;import org.apache.commons.lang3.StringUtils;
+import javax.servlet.http.HttpSessionListener;
+
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
@@ -141,9 +142,6 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 			throw new UndeclaredThrowableException(new SecurityException());
 		}
 		if(session.getAttribute(LOGGED_ON_KEY) != null) {
-			return;
-		}
-		if(StringUtils.equalsIgnoreCase(request.getMethod(), "post")) {
 			return;
 		}
 		AtomicInteger attempts = (AtomicInteger) session.getAttribute(LOGIN_ATTEMPTS_REMAINING);

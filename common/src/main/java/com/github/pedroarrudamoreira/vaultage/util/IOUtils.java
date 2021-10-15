@@ -22,7 +22,8 @@ public class IOUtils {
 		int result = 0;
 		int len = -1;
 		byte[] buff = new byte[Math.min(limit, 1024)];
-		while(result < limit && (len = i.read(buff, 0, Math.min(buff.length, limit - result))) > 0) {
+		while(result < limit &&
+				(len = i.read(buff, 0, Math.min(buff.length, limit - result))) > 0) {
 			o.write(buff, 0, len);
 			result += len;
 		}	

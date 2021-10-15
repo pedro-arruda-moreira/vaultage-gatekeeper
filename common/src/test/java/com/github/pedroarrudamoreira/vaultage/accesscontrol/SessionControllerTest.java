@@ -150,27 +150,6 @@ public class SessionControllerTest {
 	}
 
 	@Test
-	public void test006PostRequest() {
-
-		resetAttempts();
-		AtomicInteger[] attempts = new AtomicInteger[1];
-		configureAttempts(attempts);
-		impl.sessionCreated(new HttpSessionEvent(httpSessionMock));
-		impl.setSecure(false);
-		Mockito.when(httpServletRequestMock.getMethod()).thenReturn("post");
-		ServletRequestEvent sre = new ServletRequestEvent(
-				servletContextMock, httpServletRequestMock);
-		impl.requestInitialized(sre);
-		impl.requestInitialized(sre);
-		impl.requestInitialized(sre);
-		impl.requestInitialized(sre);
-		impl.requestInitialized(sre);
-		impl.requestInitialized(sre);
-		Mockito.verify(httpSessionMock, Mockito.never()).invalidate();
-
-	}
-
-	@Test
 	public void test007AttemptsPerSession() {
 
 		resetAttempts();
