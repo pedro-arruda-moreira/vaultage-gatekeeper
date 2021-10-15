@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -62,6 +63,10 @@ public class OnlineCryptoServlet extends HttpServlet {
 		HttpSession session = req.getSession();
 		synchronized (session) {
 			CryptoData cryptoData = reader.readValue(req.getReader());
+			if(cryptoData == null || StringUtils.isEmpty(cryptoData.getGenKey())) {
+				log.warn(String.format("Attempted to set a empty crypto key for session %s", session.getId()));
+				return;
+			}
 			resetAttempts(cryptoData, session.getId());
 			session.setAttribute(CRYPTO_KEY, cryptoData);
 		}

@@ -1,7 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
 import java.io.File;
-import java.io.StringWriter;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,10 +19,6 @@ public class ObjectFactory {
 	
 	public static AtomicInteger buildAtomicInteger(int value) {
 		return new AtomicInteger(value);
-	}
-	
-	public static StringWriter buildStringWriter() {
-		return new StringWriter();
 	}
 	
 	public static String generateUUID() {

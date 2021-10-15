@@ -1,8 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter;
 
-import java.io.StringWriter;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.servlet.FilterChain;
@@ -27,19 +25,18 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-import com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, TokenManager.class})
+@PrepareForTest({ObjectFactory.class, TokenManager.class, EventLoop.class})
 public class TwoFactorAuthFilterTest {
 	
-	private static final String FAKE_EMAIL_CONTENT = "hello!";
 	private static final String FAKE_PASSWORD = "myp4ss";
-	private static final String FAKE_TOKEN = "1234567890";
+	private static final String FAKE_TOKEN = "mytoken_1234567890";
 	private static final String FAKE_HOST = "my.host.com";
 	private static final String FAKE_EMAIL_ADDR = "myself@server.com";
 	
@@ -68,12 +65,7 @@ public class TwoFactorAuthFilterTest {
 	private RequestDispatcher checkEmailDispatcherMock;
 	
 	@Mock
-	private RequestDispatcher emailTemplateDispatcherMock;
-	
-	@Mock
 	private EmailService emailServiceMock;
-	
-	private StringWriter stringWriterMock;
 	
 	private TwoFactorAuthFilter impl;
 	
@@ -87,18 +79,14 @@ public class TwoFactorAuthFilterTest {
 	@Before
 	public void setup() {
 		TestUtils.doPrepareForTest();
-		stringWriterMock = new StringWriter();
 		impl = new TwoFactorAuthFilter();
 		impl.setEnabled(true);
 		impl.setServletContext(servletContextMock);
 		impl.setEmailService(emailServiceMock);
 		impl.setAuthProvider(authProvider);
-		PowerMockito.when(ObjectFactory.buildStringWriter()).thenReturn(stringWriterMock);
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.CHECK_EMAIL_HTML_LOCATION)).thenReturn(checkEmailDispatcherMock);
-		Mockito.when(servletContextMock.getRequestDispatcher(
-				TwoFactorAuthFilter.EMAIL_TEMPLATE_JSP_LOCATION)).thenReturn(emailTemplateDispatcherMock);
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.PASSWORD_HTML_LOCATION)).thenReturn(emailPasswordDispatcherMock);
 		Mockito.when(emailServiceMock.isEnabled()).thenAnswer(i -> emailEnabled);
@@ -178,39 +166,28 @@ public class TwoFactorAuthFilterTest {
 				Mockito.eq(TokenType.SESSION))).thenReturn(false);
 		PowerMockito.when(TokenManager.generateNewToken(
 				Mockito.eq(TokenType.SESSION))).thenReturn(FAKE_TOKEN);
-		Mockito.doAnswer(inv -> {
-			inv.getArgument(1, HttpServletResponse.class).getWriter().write(FAKE_EMAIL_CONTENT);
-			return null;
-		}).when(emailTemplateDispatcherMock).include(Mockito.eq(httpServletRequestMock),
-				Mockito.any());
 		impl.setThisServerHost(FAKE_HOST);
-		AtomicBoolean serverHostDefined = new AtomicBoolean(false);
-		AtomicBoolean tokenDefined = new AtomicBoolean(false);
 		Mockito.when(emailServiceMock.isAuthenticationConfigured()).thenReturn(true);
-		Mockito.doAnswer(i -> {
-			serverHostDefined.set(true);
-			return null;
-		}).when(httpServletRequestMock).setAttribute(Mockito.eq(TwoFactorAuthFilter.EMAIL_TEMPLATE_SERVER_HOST_KEY),
-				Mockito.eq(String.format("http://%s", FAKE_HOST)));
-		
-		Mockito.doAnswer(i -> {
-			tokenDefined.set(true);
-			return null;
-		}).when(httpServletRequestMock).setAttribute(Mockito.eq(TwoFactorAuthFilter.EMAIL_TOKEN_KEY),
-				Mockito.eq(FAKE_TOKEN));
 		
 		User user = new User();
 		user.setEmail(FAKE_EMAIL_ADDR);
 		Mockito.when(authProvider.getCurrentUser()).thenReturn(user);
+		String[] emailContent = new String[1];
+		PowerMockito.doAnswer((i) -> {
+			i.getArgument(0, Runnable.class).run();
+			return null;
+		}).when(EventLoop.class);
+		EventLoop.execute(Mockito.any());
+		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> emailContent[0] = v.get(), 2)).when(
+				emailServiceMock).sendEmail(Mockito.eq(FAKE_EMAIL_ADDR), Mockito.eq(TwoFactorAuthFilter.SUBJECT), Mockito.any(),
+						Mockito.eq(null));
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
-		Mockito.verify(emailServiceMock).sendEmail(FAKE_EMAIL_ADDR, TwoFactorAuthFilter.SUBJECT, FAKE_EMAIL_CONTENT, null);
 		Mockito.verify(checkEmailDispatcherMock).forward(httpServletRequestMock,
 				httpServletResponseMock);
-		Assert.assertTrue("Server host for email was not defined.", serverHostDefined.get());
-		Assert.assertTrue("Token for email was not defined.", tokenDefined.get());
 		Mockito.verifyNoInteractions(filterChainMock);
 		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.EMAIL_SENT_KEY, ObjectFactory.PRESENT);
-		Assert.assertEquals(FAKE_EMAIL_CONTENT, stringWriterMock.toString());
+		Assert.assertTrue("wrong email content", emailContent[0].contains("A login attempt has been made on your Vaultage server."));
+		Assert.assertTrue("no token in email", emailContent[0].contains(FAKE_TOKEN));
 	}
 
 }

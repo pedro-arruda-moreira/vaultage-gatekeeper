@@ -93,9 +93,23 @@ public class OnlineCryptoServletTest {
 	@Test
 	public void testSaveCryptoKey() throws Exception {
 		cryptoData = new CryptoData();
+		cryptoData.setGenKey("aaaa");
+		cryptoData.setPin(CORRECT_PIN);
 		impl.doPost(reqMock, resMock);
 		Assert.assertEquals(ATTEMPTS, cryptoData.getAttemptsLeft());
 		Mockito.verify(sessMock).setAttribute(OnlineCryptoServlet.CRYPTO_KEY, cryptoData);
+	}
+	
+	@Test
+	public void testSaveCryptoKey_Empty() throws Exception {
+		cryptoData = new CryptoData();
+		impl.doPost(reqMock, resMock);
+		Mockito.doAnswer((i) -> {
+			Assert.assertTrue("wrong message.", i.getArgument(0, String.class).contains(
+					"No crypto key for"));
+			return null;
+		}).when(logMock).info(Mockito.any());
+		Mockito.verify(sessMock, Mockito.never()).setAttribute(OnlineCryptoServlet.CRYPTO_KEY, cryptoData);
 	}
 	
 	@Test

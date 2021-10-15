@@ -77,7 +77,7 @@ public class Starter implements ServletContextAware, DisposableBean {
 							processCount.decrementAndGet();
 							return false;
 						case RESTART_VAULTAGE_SERVER:
-							log.warn("vaultage-server process has terminated and will be restarted.");
+							log.warn("vaultage-wrapper process has terminated and will be restarted.");
 						case START_VAULTAGE_SERVER:
 							vaultageServer[0] = doStartServer(user, port, token);
 						case ONLINE:
@@ -88,7 +88,7 @@ public class Starter implements ServletContextAware, DisposableBean {
 						log.error(e.getMessage(), e);
 					}
 					return true;
-				}, users.size() * 500, TimeUnit.MILLISECONDS);
+				}, 500, TimeUnit.MILLISECONDS);
 			});
 		});
 	}
@@ -105,9 +105,15 @@ public class Starter implements ServletContextAware, DisposableBean {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		IOUtils.copy(content, baos);
 		if(!"OK".equals(new String(baos.toByteArray()))) {
-			log.warn(String.format("could not finish vaultage server on port %d", port));
+			log.warn(String.format("could not send shutdown command for vaultage server on port %d", port));
 		}
 		response.close();
+		int retVal = process.waitFor();
+		if(retVal != 0) {
+			log.warn(String.format("could not send shutdown vaultage server on port %d", port));
+		} else {
+			log.info(String.format("vaultage server on port %d stopped.", port));
+		}
 	}
 
 
@@ -166,6 +172,7 @@ public class Starter implements ServletContextAware, DisposableBean {
 		while(processCount.get() > 0) {
 			ThreadControl.sleep(200);
 		}
+		ThreadControl.sleep(1000);
 	}
 
 }

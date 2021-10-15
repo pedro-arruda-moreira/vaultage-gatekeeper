@@ -27,7 +27,8 @@ import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
-
+import lombok.extern.apachecommons.CommonsLog;
+@CommonsLog
 public class SessionController implements HttpSessionListener, ServletContextAware,
 	ServletRequestListener, Filter {
 	
@@ -54,16 +55,16 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 
 	private static int maxLoginAttemptsPerSession = -1;
 	static {
-		final int[] count = new int[1];
 		EventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - hour");
 			REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
-			count[0]++;
-			if(count[0] >= 24) {
-				count[0] = 0;
-				REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
-			}
 			return true;
 		}, 1, TimeUnit.HOURS);
+		EventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - day");
+			REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
+			return true;
+		}, 1, TimeUnit.DAYS);
 	}
 
 	public static synchronized void setMaxSessionsPerDay(int maxSessionsPerDay) {
