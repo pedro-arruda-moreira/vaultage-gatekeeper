@@ -26,9 +26,6 @@ public class User {
 	@JsonProperty("basic-password")
 	private String password;
 	
-	@JsonProperty("vaultage-username")
-	private String vaultageUsername;
-	
 	@JsonProperty
 	private String email;
 	

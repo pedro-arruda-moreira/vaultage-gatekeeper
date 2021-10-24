@@ -41,6 +41,9 @@ public class AuthenticationProvider implements UserDetailsService, InitializingB
 	public String getCurrentUserName() {
 		String currentUserName = null;
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if(authentication == null) {
+			return null;
+		}
 		if (!(authentication instanceof AnonymousAuthenticationToken)) {
 		    currentUserName = authentication.getName();
 		}

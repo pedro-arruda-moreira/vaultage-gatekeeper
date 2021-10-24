@@ -10,7 +10,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.ServletContext;
-import javax.servlet.ServletRegistration;
 
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -51,10 +50,6 @@ public class Starter implements ServletContextAware, DisposableBean {
 
 
 	private void doConfigureServersAndRedirects(ServletContext servletContext, Map<String, User> users) {
-		ServletRegistration servletRegistration = servletContext.getServletRegistration("proxyServlet");
-		users.values().forEach((user) -> {
-			servletRegistration.addMapping(String.format("/%s/*", user.getVaultageUsername()));
-		});
 		EventLoop.execute(() -> {
 			while (SessionController.getApplicationContext() == null) {
 				try {
