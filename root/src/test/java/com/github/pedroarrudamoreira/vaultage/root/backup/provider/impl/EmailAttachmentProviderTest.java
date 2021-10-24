@@ -35,7 +35,6 @@ public class EmailAttachmentProviderTest {
 	@Test
 	public void testSendEmail() throws AddressException, MessagingException {
 		User user = new User();
-		user.setVaultageUsername("user");
 		ByteArrayInputStream bais = new ByteArrayInputStream(FAKE_DATABASE.getBytes());
 		Mockito.doAnswer((i) -> {
 			Assert.assertTrue("wrong email content", i.getArgument(2, String.class).contains("It may be encrypted in AES-256"));

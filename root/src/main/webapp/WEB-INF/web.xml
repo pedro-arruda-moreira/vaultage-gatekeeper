@@ -4,9 +4,6 @@
 	      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
 	<display-name>vaultage-web-app-root</display-name>
-	<welcome-file-list>
-		<welcome-file>select-channel</welcome-file>
-	</welcome-file-list>
 	
 	<error-page>
 		<error-code>500</error-code>
@@ -61,15 +58,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/config</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/dist/*</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/main.css</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 	
 	<context-param>

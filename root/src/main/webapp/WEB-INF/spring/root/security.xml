@@ -7,7 +7,9 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 	
-	
+	<bean id="preAuthFilter" class="com.github.pedroarrudamoreira.vaultage.root.redirector.filter.PreAuthFilter">
+		<property name="authProvider" ref="authProvider"/>
+	</bean>
 	
 	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
 		<property name="filters">
@@ -45,6 +47,7 @@
 		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
 		<sec:http-basic />
 		<sec:custom-filter ref="compositeFilter" after="LAST"/>
+		<sec:custom-filter ref="preAuthFilter" before="FIRST"/>
 	</sec:http>
 	
 
