@@ -19,6 +19,7 @@ import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvid
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
@@ -37,6 +38,9 @@ public class BackupService implements Job {
 	private boolean doEncrypt;
 	
 	private Map<String, BackupProvider> providers;
+	
+	@Setter
+	private VaultSynchronizer vaultSynchronizer;
 
 	@SneakyThrows
 	private void doBackup() {
@@ -57,7 +61,7 @@ public class BackupService implements Job {
 			if(!vaultageDataFolder.exists()) {
 				continue;
 			}
-			byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder);
+			byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder, user.getUserId());
 			for(Map.Entry<BackupProvider, Object> providerConfig : providersForUser) {
 				providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
 						providerConfig.getValue());
@@ -65,7 +69,7 @@ public class BackupService implements Job {
 		}
 		
 	}
-	private byte[] doZipDatabase(final File vaultageDataFolder) throws IOException {
+	private byte[] doZipDatabase(final File vaultageDataFolder, String userId) throws IOException {
 		final ByteArrayOutputStream vaultageDatabase = RootObjectFactory.buildByteArrayOutputStream();
 		EasyZip zipControl = null; 
 		if(doEncrypt) {
@@ -73,7 +77,8 @@ public class BackupService implements Job {
 		} else {
 			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, null);
 		}
-		zipControl.zipIt(vaultageDatabase);
+		final EasyZip zc = zipControl;
+		vaultSynchronizer.runSync(userId, () -> zc.zipIt(vaultageDatabase));
 		byte[] vaultageDatabaseBytes = vaultageDatabase.toByteArray();
 		return vaultageDatabaseBytes;
 	}

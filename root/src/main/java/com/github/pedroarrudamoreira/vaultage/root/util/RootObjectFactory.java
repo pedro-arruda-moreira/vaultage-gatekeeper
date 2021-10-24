@@ -5,7 +5,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.Authenticator;
 import javax.mail.Session;
@@ -27,7 +30,11 @@ public class RootObjectFactory {
 	}
 	
 	public static EasyZip buildEasyZip(File folder, String password) {
-		return new EasyZip(folder, password.toCharArray());
+		char[] charArray = null;
+		if(password != null) {
+			charArray = password.toCharArray();
+		}
+		return new EasyZip(folder, charArray);
 	}
 	
 	public static ByteArrayOutputStream buildByteArrayOutputStream() {
@@ -40,6 +47,13 @@ public class RootObjectFactory {
 	
 	public static FileOutputStream buildFileOutputStream(File file) throws FileNotFoundException {
 		return new FileOutputStream(file);
+	}
+	
+	public static <K, V> Map<K, V> buildMap(boolean concurrent) {
+		if(concurrent) {
+			return new ConcurrentHashMap<>();
+		}
+		return new HashMap<>();
 	}
 
 }

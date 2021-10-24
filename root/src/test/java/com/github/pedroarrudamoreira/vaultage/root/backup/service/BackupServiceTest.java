@@ -24,6 +24,8 @@ import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvid
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer.ExceptionRunnable;
 import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
@@ -42,6 +44,9 @@ public class BackupServiceTest {
 
 	@Mock
 	private ApplicationContext mockApplicationContext;
+	
+	@Mock
+	private VaultSynchronizer vaultSynchronizer;
 	
 	@Mock
 	private AuthenticationProvider mockAuthProvider;
@@ -76,6 +81,7 @@ public class BackupServiceTest {
 		backupService.setEnabled(true);
 		backupService.setThisServerHost(FAKE_HOST);
 		backupService.setAuthProvider(mockAuthProvider);
+		backupService.setVaultSynchronizer(vaultSynchronizer);
 		backupService.setProviders(Collections.singletonMap(FAKE_BACKUP_PROVIDER, mockBackupProvider));
 		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(mockApplicationContext);
 		PowerMockito.when(ObjectFactory.buildFile(FAKE_DATA_DIR)).thenReturn(mockFile);
@@ -84,6 +90,9 @@ public class BackupServiceTest {
 				mockByteArrayInputStream);
 		Mockito.when(mockByteArrayOutputStream.toByteArray()).thenReturn(FAKE_BYTE_CONTENT);
 		Mockito.when(mockApplicationContext.getBean(BackupService.class)).thenReturn(backupService);
+		Mockito.when(vaultSynchronizer.runSync(
+				Mockito.any(), Mockito.any())).thenAnswer(
+						(i) -> i.getArgument(1, ExceptionRunnable.class).run());
 	}
 	
 	@Test
