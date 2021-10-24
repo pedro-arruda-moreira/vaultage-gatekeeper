@@ -15,6 +15,7 @@
 		<property name="doEncrypt" value="${backup.encrypt}"/>
 		<property name="thisServerHost" value="${server.host}"/>
 		<property name="authProvider" ref="authProvider"/>
+		<property name="vaultSynchronizer" ref="vaultSynchronizer" />
 		<property name="providers">
 			<map>
 				<entry key="file">

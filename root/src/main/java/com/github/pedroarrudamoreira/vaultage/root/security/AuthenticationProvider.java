@@ -31,15 +31,20 @@ public class AuthenticationProvider implements UserDetailsService, InitializingB
 	}
 	
 	public User getCurrentUser() {
+		String currentUserName = getCurrentUserName();
+		if(currentUserName != null) {
+			return users.get(currentUserName);
+		}
+		return null;
+	}
+
+	public String getCurrentUserName() {
 		String currentUserName = null;
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (!(authentication instanceof AnonymousAuthenticationToken)) {
 		    currentUserName = authentication.getName();
 		}
-		if(currentUserName != null) {
-			return users.get(currentUserName);
-		}
-		return null;
+		return currentUserName;
 	}
 
 	@Override

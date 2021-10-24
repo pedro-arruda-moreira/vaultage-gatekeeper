@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
+
 import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.AesKeyStrength;
@@ -29,8 +31,7 @@ public class EasyZip {
 		generateFileList(folderLocation);
 	}
 
-	public void zipIt(OutputStream out) throws IOException {
-		byte[] buffer = new byte[1024];
+	public Void zipIt(OutputStream out) throws IOException {
 		String source = folderLocation.getName();
 		ZipOutputStream zos = null;
 		try {
@@ -43,10 +44,7 @@ public class EasyZip {
 				zos.putNextEntry(zp);
 				try {
 					in = new FileInputStream(new File(folderLocation, file));
-					int len;
-					while ((len = in.read(buffer)) > 0) {
-						zos.write(buffer, 0, len);
-					}
+					IOUtils.copy(in, zos);
 				} finally {
 					in.close();
 				}
@@ -63,6 +61,7 @@ public class EasyZip {
 				// ignored
 			}
 		}
+		return null;
 	}
 
 	private void initializeParameters(ZipParameters zp, String file, String source) {
