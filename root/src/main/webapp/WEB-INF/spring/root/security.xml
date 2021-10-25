@@ -47,7 +47,7 @@
 		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
 		<sec:http-basic />
 		<sec:custom-filter ref="compositeFilter" after="LAST"/>
-		<sec:custom-filter ref="preAuthFilter" before="FIRST"/>
+		<sec:custom-filter ref="preAuthFilter" before="BASIC_AUTH_FILTER"/>
 	</sec:http>
 	
 
