@@ -34,9 +34,6 @@ public class ChannelDecidingServlet extends HttpServlet implements ServletContex
 	private ServletContext servletContext;
 	
 	@Getter(lazy = true, value = AccessLevel.PRIVATE)
-	private final RequestDispatcher vaultageCliDispatcher = servletContext.getRequestDispatcher(
-			"/dist/vaultage");
-	@Getter(lazy = true, value = AccessLevel.PRIVATE)
 	private final RequestDispatcher mobileDispatcher = servletContext.getRequestDispatcher(
 			"/mobile.jsp");
 
@@ -56,7 +53,7 @@ public class ChannelDecidingServlet extends HttpServlet implements ServletContex
 			sendToPWA(req, resp, false);
 		} else {
 			if(useCliForDesktop) {
-				getVaultageCliDispatcher().forward(req, resp);
+				resp.sendRedirect("/?login=true");
 			} else {
 				sendToPWA(req, resp, true);
 			}
