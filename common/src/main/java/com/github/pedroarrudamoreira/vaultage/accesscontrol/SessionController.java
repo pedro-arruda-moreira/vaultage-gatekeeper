@@ -87,6 +87,9 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 		if(SessionController.maxLoginAttemptsPerSession != -1) {
 			return;
 		}
+		if(maxLoginRetryPerSession < 3) {
+			maxLoginRetryPerSession = 3;
+		}
 		SessionController.maxLoginAttemptsPerSession = maxLoginRetryPerSession;
 	}
 
