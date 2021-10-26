@@ -2,10 +2,16 @@ package com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 
 public class GlobalTokenSupplier implements ITokenSupplier {
 
@@ -16,6 +22,19 @@ public class GlobalTokenSupplier implements ITokenSupplier {
 		if(!TOKEN_DIR.exists() && !TOKEN_DIR.mkdirs()) {
 			throw new IllegalStateException("could not create token dir!");
 		}
+		
+
+		EventLoop.repeatTask(() -> {
+			Instant now = new Date().toInstant();
+			File[] tokens = TOKEN_DIR.listFiles();
+			for(File token : tokens) {
+				if(Math.abs(ChronoUnit.MINUTES.between(
+						new Date(token.lastModified()).toInstant(), now)) >= 5) {
+					token.delete();
+				}
+			}
+			return true;
+		}, 1, TimeUnit.MINUTES);
 	}
 
 	@Override
