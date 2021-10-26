@@ -3,6 +3,7 @@ package com.github.pedroarrudamoreira.vaultage.root.security.model;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
@@ -12,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @JsonSerialize
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @Setter
 public class User {
@@ -35,6 +37,9 @@ public class User {
 	@JsonIgnore
 	private String userId;
 	
+	@JsonProperty("desktop-cli")
+	private Boolean useCliForDesktop;
+	
 	public String getDataDir() {
 		if(dataDir == null) {
 			dataDir = ObjectFactory.normalizePath(SessionController.getApplicationContext(
@@ -48,6 +53,13 @@ public class User {
 			port = DEFAULT_VAULTAGE_PORT;
 		}
 		return port;
+	}
+	
+	public Boolean getUseCliForDesktop() {
+		if(useCliForDesktop == null) {
+			useCliForDesktop = Boolean.FALSE;
+		}
+		return useCliForDesktop;
 	}
 	
 }
