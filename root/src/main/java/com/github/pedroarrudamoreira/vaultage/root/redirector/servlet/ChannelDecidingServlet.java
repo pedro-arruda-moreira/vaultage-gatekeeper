@@ -39,7 +39,7 @@ public class ChannelDecidingServlet extends HttpServlet {
 			sendToPWA(req, resp, false);
 		} else {
 			if(useCliForDesktop()) {
-				resp.sendRedirect("/?login=true");
+				resp.sendRedirect("/?cli=true");
 			} else {
 				sendToPWA(req, resp, true);
 			}

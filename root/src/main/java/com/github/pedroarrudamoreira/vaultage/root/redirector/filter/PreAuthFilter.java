@@ -25,11 +25,11 @@ public class PreAuthFilter extends HttpFilter {
 	protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
 			throws IOException, ServletException {
 		if("/".equals(SessionController.getOriginalUrl())
-				&& authProvider.getCurrentUserName() == null) {
+			&& req.getParameter("cli") == null) {
 			res.sendRedirect("/select-channel");
 			return;
 		}
-		super.doFilter(req, res, chain);
+		chain.doFilter(req, res);
 	}
 
 }
