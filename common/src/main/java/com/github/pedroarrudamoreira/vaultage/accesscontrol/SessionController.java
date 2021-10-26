@@ -4,16 +4,15 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.ServletResponse;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
@@ -22,6 +21,7 @@ import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.ServletContextAware;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -29,8 +29,8 @@ import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 @CommonsLog
-public class SessionController implements HttpSessionListener, ServletContextAware,
-	ServletRequestListener, Filter {
+public class SessionController extends OncePerRequestFilter implements HttpSessionListener, ServletContextAware,
+	ServletRequestListener {
 	
 	static final String ORIGINAL_URL = ServletRequestListener.class.getCanonicalName()
 			+ "_originalRequest";
@@ -159,7 +159,7 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, ObjectFactory.PRESENT);
 		chain.doFilter(request, response);

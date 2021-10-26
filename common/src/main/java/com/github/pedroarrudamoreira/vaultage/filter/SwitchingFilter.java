@@ -2,20 +2,23 @@ package com.github.pedroarrudamoreira.vaultage.filter;
 
 import java.io.IOException;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import lombok.Setter;
 
-public abstract class SwitchingFilter implements Filter {
+public abstract class SwitchingFilter extends OncePerRequestFilter {
 	@Setter
 	protected boolean enabled = true;
 
 	@Override
-	public final void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+	protected final void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		if(!enabled) {
 			chain.doFilter(request, response);
