@@ -10,7 +10,7 @@
 	Please check your configured e-mail for instructions.<br/>
 	<br/>
 	If you copied the token, paste it here:
-	<form method="get" action="/" autocomplete="off">
+	<form method="get" action="/select-channel/" autocomplete="off">
 		<input type="text" name="email_token"
 			value="" placeholder="put token here" />
 		<input type="submit" value="check token"/>

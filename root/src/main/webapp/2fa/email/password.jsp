@@ -8,7 +8,7 @@
 </head>
 <body>
 	Please, insert the password for your configured e-mail address:<br/>
-	<form method="post" action="./">
+	<form method="post" action="/select-channel/" autocomplete="off">
 		<input type="password" name="email_password"/>
 		<input type="submit" value="Ok"/>
 	</form>
