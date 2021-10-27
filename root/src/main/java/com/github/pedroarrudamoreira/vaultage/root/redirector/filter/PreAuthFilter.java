@@ -10,13 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
-import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-
-import lombok.Setter;
 
 public class PreAuthFilter extends OncePerRequestFilter {
-	@Setter
-	private AuthenticationProvider authProvider;
 	
 	@Override
 	protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
