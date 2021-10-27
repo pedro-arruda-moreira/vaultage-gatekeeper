@@ -9,6 +9,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 
@@ -51,6 +52,9 @@ public class SessionControllerTest {
 
 	@Mock
 	private HttpServletRequest httpServletRequestMock;
+	
+	@Mock
+	private HttpServletResponse httpServletResponseMock;
 
 	@Mock
 	private SecurityContext securityContextMock;
@@ -232,9 +236,11 @@ public class SessionControllerTest {
 
 	@Test
 	public void test012LoginSuccessful() throws Exception {
-		impl.doFilter(httpServletRequestMock, null, filterChainMock);
-		Mockito.verify(httpSessionMock).setAttribute(SessionController.LOGGED_ON_KEY, ObjectFactory.PRESENT);
-		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, null);
+		impl.doFilter(httpServletRequestMock,
+				httpServletResponseMock, filterChainMock);
+		Mockito.verify(httpSessionMock).setAttribute(
+				SessionController.LOGGED_ON_KEY, ObjectFactory.PRESENT);
+		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, httpServletResponseMock);
 	}
 
 	private void configureAttempts(AtomicInteger[] attempts) {
@@ -257,7 +263,5 @@ public class SessionControllerTest {
 	private void resetAttempts() {
 		doExecuteRunnable(24);
 	}
-
-
 
 }
