@@ -31,6 +31,7 @@
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.service.TokenService"
 		name="tokenService">
 		<beans:property name="cryptoType" value="${mobile.crypto_type:offline}"/>
+		<beans:property name="twoFactorAuth" value="${2fa.enabled:#{false}}"></beans:property>
 	</beans:bean>
 		
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.filter.DisableSecurityFilter"

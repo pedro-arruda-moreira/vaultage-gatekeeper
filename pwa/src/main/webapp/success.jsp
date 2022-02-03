@@ -15,7 +15,8 @@
 <body>
 	Taking you to the PWA now.
 	<form method="get" action="/pwa" id="frm1">
-		<input type="hidden" name="use_basic" value="true" />
+		<input type="hidden" name="use_basic"
+			value="<%=request.getAttribute(TokenService.USE_BASIC) %>" />
 		<input type="hidden" name="self_contained" value="true" />
 		<input type="hidden" name="crypto_type"
 			value="<%=request.getAttribute(TokenService.CRYPTO_TYPE) %>" />

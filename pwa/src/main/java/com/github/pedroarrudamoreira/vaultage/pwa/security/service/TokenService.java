@@ -19,14 +19,18 @@ import lombok.Setter;
 
 public class TokenService implements UserDetailsService {
 	public static final String CRYPTO_TYPE = "crypto_type";
+	public static final String USE_BASIC = "use_basic";
 	@Setter
 	private String cryptoType;
+	@Setter
+	private Boolean twoFactorAuth;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String userPassword;
 		final HttpServletRequest currentRequest = SessionController.getCurrentRequest();
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);
+		currentRequest.setAttribute(USE_BASIC, Boolean.toString(!twoFactorAuth));
 		String providedToken = currentRequest.getParameter("value");
 		if(TokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {
 			TokenManager.removeToken(providedToken);
