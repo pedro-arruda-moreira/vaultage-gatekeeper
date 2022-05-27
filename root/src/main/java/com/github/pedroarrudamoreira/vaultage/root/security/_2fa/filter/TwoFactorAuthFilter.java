@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javax.servlet.FilterChain;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletResponse;
@@ -25,9 +24,7 @@ import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvid
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
-import lombok.AccessLevel;
 import lombok.Cleanup;
-import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
 @Setter
@@ -50,13 +47,6 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 	private String thisServerHost;
 
 	private ServletContext servletContext;
-	@Getter(lazy = true, value = AccessLevel.PRIVATE)
-	private final RequestDispatcher emailPasswordDispatcher = servletContext.getRequestDispatcher(
-			PASSWORD_HTML_LOCATION);
-
-	@Getter(lazy = true, value = AccessLevel.PRIVATE)
-	private final RequestDispatcher checkEmailDispatcher = servletContext.getRequestDispatcher(
-			CHECK_EMAIL_HTML_LOCATION);
 
 
 	@Override
@@ -75,7 +65,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 		if(TokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
 				TokenManager.removeToken(receivedToken)) {
 			httpSession.setAttribute(ALREADY_VALIDATED_KEY, ObjectFactory.PRESENT);
-			chain.doFilter(request, response);
+			request.getServletContext().getRequestDispatcher("/select-channel.jsp").forward(request, response);
 			return;
 		}
 		if(!validateEmailPassword(response, request)) {
@@ -109,7 +99,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 
 			}
 		}
-		getCheckEmailDispatcher().forward(request, response);
+		servletContext.getRequestDispatcher(CHECK_EMAIL_HTML_LOCATION).forward(request, response);
 
 	}
 
@@ -136,7 +126,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 		if(!emailService.isAuthenticationConfigured()) {
 			String emailPass = request.getParameter(EMAIL_PASSWORD_REQUEST_KEY);
 			if(emailPass == null) {
-				getEmailPasswordDispatcher().forward(request, response);
+				servletContext.getRequestDispatcher(PASSWORD_HTML_LOCATION).forward(request, response);
 				return false;
 			} else {
 				emailService.setPassword(emailPass);

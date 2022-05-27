@@ -7,18 +7,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
+import com.github.pedroarrudamoreira.vaultage.filter.SwitchingFilter;
 
-public class PreAuthFilter extends OncePerRequestFilter {
+public class PreAuthFilter extends SwitchingFilter {
 	
 	@Override
-	protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
+	protected void doFilterImpl(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
 			throws IOException, ServletException {
 		if("/".equals(SessionController.getOriginalUrl())
 			&& req.getParameter("cli") == null) {
-			res.sendRedirect("/select-channel");
+			req.getServletContext().getRequestDispatcher("/select-channel.jsp").forward(req, res);
 			return;
 		}
 		chain.doFilter(req, res);

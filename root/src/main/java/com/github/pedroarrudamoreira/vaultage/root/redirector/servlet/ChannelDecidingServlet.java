@@ -39,7 +39,7 @@ public class ChannelDecidingServlet extends HttpServlet {
 			sendToPWA(req, resp, false);
 		} else {
 			if(useCliForDesktop()) {
-				resp.sendRedirect("/?cli=true");
+				req.getServletContext().getRequestDispatcher("/cli.jsp").forward(req, resp);
 			} else {
 				sendToPWA(req, resp, true);
 			}
@@ -54,8 +54,7 @@ public class ChannelDecidingServlet extends HttpServlet {
 			boolean desktopMode) throws IOException, ServletException {
 		req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken(TokenType.GLOBAL));
 		req.setAttribute(DESKTOP_MODE_KEY, String.valueOf(desktopMode));
-		req.getServletContext().getRequestDispatcher(
-				"/mobile.jsp").forward(req, resp);
+		req.getServletContext().getRequestDispatcher("/mobile.jsp").forward(req, resp);
 	}
 
 }

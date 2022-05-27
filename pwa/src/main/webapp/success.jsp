@@ -9,7 +9,7 @@
 <script type="text/javascript">
 	setTimeout(function() {
 		document.getElementById('frm1').submit();
-	}, 2000);
+	}, 300);
 </script>
 </head>
 <body>
