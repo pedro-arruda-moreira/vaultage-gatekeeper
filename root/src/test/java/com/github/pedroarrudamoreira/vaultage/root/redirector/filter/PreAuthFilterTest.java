@@ -1,6 +1,8 @@
 package com.github.pedroarrudamoreira.vaultage.root.redirector.filter;
 
 import javax.servlet.FilterChain;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,6 +34,12 @@ public class PreAuthFilterTest {
 	@Mock
 	private FilterChain filterChainMock;
 	
+	@Mock
+	private ServletContext servletContextMock;
+	
+	@Mock
+	private RequestDispatcher requestDispatcherMock;
+	
 	@BeforeClass
 	public static void setupStatic() {
 		TestUtils.doPrepareForTest();
@@ -40,6 +48,8 @@ public class PreAuthFilterTest {
 	@Before
 	public void setup() {
 		setupStatic();
+		Mockito.when(requestMock.getServletContext()).thenReturn(servletContextMock);
+		Mockito.when(servletContextMock.getRequestDispatcher("/select-channel.jsp")).thenReturn(requestDispatcherMock);
 	}
 	
 	@Test
@@ -47,7 +57,7 @@ public class PreAuthFilterTest {
 		PowerMockito.when(SessionController.getOriginalUrl()).thenReturn("/");
 		Mockito.when(requestMock.getParameter("cli")).thenReturn(null);
 		unit.doFilter(requestMock, responseMock, filterChainMock);
-		Mockito.verify(responseMock).sendRedirect("/select-channel");
+		Mockito.verify(requestDispatcherMock).forward(requestMock, responseMock);
 	}
 	
 	@Test

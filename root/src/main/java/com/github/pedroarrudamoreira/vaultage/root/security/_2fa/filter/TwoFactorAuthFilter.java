@@ -30,6 +30,7 @@ import lombok.extern.apachecommons.CommonsLog;
 @Setter
 @CommonsLog
 public class TwoFactorAuthFilter extends SwitchingFilter implements ServletContextAware {
+	static final String CHANNEL_SELECTOR_LOCATION = "/select-channel.jsp";
 	static final String EMAIL_CONTENT_TYPE = "text/html;charset=ISO-8859-1";
 	static final String EMAIL_PASSWORD_REQUEST_KEY = "email_password";
 	static final String ALREADY_VALIDATED_KEY = TwoFactorAuthFilter.class.getName() + ".ALL_OK";
@@ -65,7 +66,8 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 		if(TokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
 				TokenManager.removeToken(receivedToken)) {
 			httpSession.setAttribute(ALREADY_VALIDATED_KEY, ObjectFactory.PRESENT);
-			request.getServletContext().getRequestDispatcher("/select-channel.jsp").forward(request, response);
+			this.servletContext.getRequestDispatcher(
+					CHANNEL_SELECTOR_LOCATION).forward(request, response);
 			return;
 		}
 		if(!validateEmailPassword(response, request)) {

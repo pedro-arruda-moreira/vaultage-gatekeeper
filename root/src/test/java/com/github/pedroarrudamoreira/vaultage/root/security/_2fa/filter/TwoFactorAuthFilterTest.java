@@ -65,6 +65,9 @@ public class TwoFactorAuthFilterTest {
 	private RequestDispatcher checkEmailDispatcherMock;
 	
 	@Mock
+	private RequestDispatcher channelSelectorDispatcherMock;
+	
+	@Mock
 	private EmailService emailServiceMock;
 	
 	private TwoFactorAuthFilter impl;
@@ -89,6 +92,8 @@ public class TwoFactorAuthFilterTest {
 				TwoFactorAuthFilter.CHECK_EMAIL_HTML_LOCATION)).thenReturn(checkEmailDispatcherMock);
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.PASSWORD_HTML_LOCATION)).thenReturn(emailPasswordDispatcherMock);
+		Mockito.when(servletContextMock.getRequestDispatcher(
+				TwoFactorAuthFilter.CHANNEL_SELECTOR_LOCATION)).thenReturn(channelSelectorDispatcherMock);
 		Mockito.when(emailServiceMock.isEnabled()).thenAnswer(i -> emailEnabled);
 	}
 	
@@ -122,7 +127,7 @@ public class TwoFactorAuthFilterTest {
 				Mockito.eq(TokenType.SESSION))).thenReturn(true);
 		PowerMockito.when(TokenManager.removeToken(Mockito.any())).thenReturn(true);
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
-		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, httpServletResponseMock);
+		Mockito.verify(channelSelectorDispatcherMock).forward(httpServletRequestMock, httpServletResponseMock);
 		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.ALREADY_VALIDATED_KEY,
 				ObjectFactory.PRESENT);
 		
