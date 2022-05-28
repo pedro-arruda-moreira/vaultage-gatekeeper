@@ -50,41 +50,43 @@ public class Starter implements ServletContextAware, DisposableBean {
 
 
 	private void doConfigureServersAndRedirects(ServletContext servletContext, Map<String, User> users) {
-		EventLoop.execute(() -> {
-			while (SessionController.getApplicationContext() == null) {
-				try {
-					ThreadControl.sleep(500);
-				} catch (InterruptedException e) {
-					log.warn(e.getMessage(), e);
-				}
+		EventLoop.repeatTask(() -> {
+			if (SessionController.getApplicationContext() == null) {
+				return true;
 			}
 			doValidateUsers(users);
-			users.values().forEach((user) -> {
-				final int[] port = new int[1];
-				final String[] token = new String[1];
-				final Process[] vaultageServer = new Process[1];
-				EventLoop.repeatTask(() -> {
-					try {
-						SystemStatus status = obtainSystemStatus(vaultageServer[0]);
-						switch (status) {
-						case SHUTTING_DOWN:
-							shutDownServer(port[0], token[0], vaultageServer[0]);
-							processCount.decrementAndGet();
-							return false;
-						case RESTART_VAULTAGE_SERVER:
-							log.warn("vaultage-wrapper process has terminated and will be restarted.");
-						case START_VAULTAGE_SERVER:
-							vaultageServer[0] = doStartServer(user, port, token);
-						case ONLINE:
-							break;
-						}
+			doStartAndMonitorVaultageServers(users);
+			return false;
+		}, 500, TimeUnit.MILLISECONDS);
+	}
 
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
+
+	private void doStartAndMonitorVaultageServers(Map<String, User> users) {
+		users.values().forEach((user) -> {
+			final int[] port = new int[1];
+			final String[] token = new String[1];
+			final Process[] vaultageServer = new Process[1];
+			EventLoop.repeatTask(() -> {
+				try {
+					SystemStatus status = obtainSystemStatus(vaultageServer[0]);
+					switch (status) {
+					case SHUTTING_DOWN:
+						shutDownServer(port[0], token[0], vaultageServer[0]);
+						processCount.decrementAndGet();
+						return false;
+					case RESTART_VAULTAGE_SERVER:
+						log.warn("vaultage-wrapper process has terminated and will be restarted.");
+					case START_VAULTAGE_SERVER:
+						vaultageServer[0] = doStartServer(user, port, token);
+					case ONLINE:
+						break;
 					}
-					return true;
-				}, 500, TimeUnit.MILLISECONDS);
-			});
+
+				} catch (Exception e) {
+					log.error(e.getMessage(), e);
+				}
+				return true;
+			}, 500, TimeUnit.MILLISECONDS);
 		});
 	}
 
