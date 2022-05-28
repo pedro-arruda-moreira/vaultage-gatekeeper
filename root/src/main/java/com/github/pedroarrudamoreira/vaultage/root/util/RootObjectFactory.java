@@ -15,6 +15,7 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 public class RootObjectFactory {
 	private RootObjectFactory() {
@@ -46,7 +47,7 @@ public class RootObjectFactory {
 	}
 	
 	public static FileOutputStream buildFileOutputStream(File file) throws FileNotFoundException {
-		return new FileOutputStream(file);
+		return ObjectFactory.buildFileOutputStream(file);
 	}
 	
 	public static <K, V> Map<K, V> buildMap(boolean concurrent) {
