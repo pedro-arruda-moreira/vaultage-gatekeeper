@@ -3,7 +3,6 @@ package com.github.pedroarrudamoreira.vaultage.root.backup.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.util.Collections;
 
 import org.junit.Before;
@@ -134,7 +133,7 @@ public class BackupServiceTest {
 	}
 	
 	@Test
-	public void testEnabledWithUsersWithValidProvidersAndExistingDataDir() throws JobExecutionException, IOException {
+	public void testEnabledWithUsersWithValidProvidersAndExistingDataDir() throws Exception {
 		User user = new User();
 		user.setDataDir(FAKE_DATA_DIR);
 		Object providerArg = new Object();
@@ -144,6 +143,8 @@ public class BackupServiceTest {
 		PowerMockito.when(RootObjectFactory.buildEasyZip(mockFile, FAKE_HOST)).thenReturn(easyZipMock);
 		backupService.setDoEncrypt(true);
 		backupService.execute(null);
+		// let event loop do its things...
+		Thread.sleep(2000l);
 		Mockito.verify(easyZipMock).zipIt(mockByteArrayOutputStream);
 		Mockito.verify(mockBackupProvider).doBackup(user, mockByteArrayInputStream, providerArg);
 	}
