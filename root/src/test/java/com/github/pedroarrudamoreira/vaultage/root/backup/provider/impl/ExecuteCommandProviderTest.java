@@ -68,7 +68,7 @@ public class ExecuteCommandProviderTest {
 	@Test
 	@SneakyThrows
 	public void test_Executes() {
-		Mockito.when(processMock.isAlive()).thenReturn(false);
+		Mockito.when(processMock.isAlive()).thenReturn(true).thenReturn(false);
 		Mockito.when(theFileMock.getAbsolutePath()).thenReturn("path");
 		final String[] obtainedProcessArgument = new String[1];
 		PowerMockito.when(ProcessSpawner.executeProcess(Mockito.any(), Mockito.any())).thenAnswer((i) -> {
@@ -78,7 +78,7 @@ public class ExecuteCommandProviderTest {
 		final User user = new User();
 		user.setUserId("usr1");
 		impl.doBackup(user, databaseMock, Arrays.asList("test", "%s"));
-		Thread.sleep(1000);
+		Thread.sleep(2500);
 		Mockito.verify(theFileMock).delete();
 		Mockito.verify(tempFileMock).delete();
 		Mockito.verify(outMock).close();

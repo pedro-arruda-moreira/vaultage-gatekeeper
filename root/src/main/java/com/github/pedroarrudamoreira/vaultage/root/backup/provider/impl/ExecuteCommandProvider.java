@@ -39,12 +39,13 @@ public class ExecuteCommandProvider implements BackupProvider {
 			}
 			final Process process = ProcessSpawner.executeProcess(null, paramsList.toArray(new String[paramsList.size()]));
 			EventLoop.repeatTask(() -> {
-				if(!process.isAlive()) {
+				final boolean alive = process.isAlive();
+				if(!alive) {
 					if(theFile != null) {
 						theFile.delete();
 					}
 				}
-				return process.isAlive();
+				return alive;
 			}, 2, TimeUnit.SECONDS);
 		} finally {
 			if(tempFile != null) {
