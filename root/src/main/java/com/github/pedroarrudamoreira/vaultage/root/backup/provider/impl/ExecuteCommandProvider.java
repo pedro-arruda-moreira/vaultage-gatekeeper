@@ -27,11 +27,12 @@ public class ExecuteCommandProvider implements BackupProvider {
 		File tempFile = null;
 		try {
 			tempFile = RootObjectFactory.buildTempFile("backup", ".zip");
-			tempFolder = tempFile.getParentFile();
+			tempFolder = tempFile.getParentFile();	
 			final File theFile = ObjectFactory.buildFile(tempFolder, BackupProviderUtils.createFileName(user));
-			@Cleanup OutputStream out = ObjectFactory.buildFileOutputStream(theFile);
-			IOUtils.copy(database, out);
-			out.close();
+			{
+				@Cleanup OutputStream out = ObjectFactory.buildFileOutputStream(theFile);
+				IOUtils.copy(database, out);
+			}
 			List<String> paramsList = BackupProviderUtils.getParamsAsStringList(params);
 			for(int i = 0; i < paramsList.size(); i++) {
 				paramsList.set(i, String.format(paramsList.get(i), theFile.getAbsolutePath()));
