@@ -1,9 +1,8 @@
 package com.github.pedroarrudamoreira.vaultage.root.util.zip;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +49,7 @@ public class EasyZip {
 
 	public Void zipIt(OutputStream out) throws IOException {
 		if(this.delegate != null) {
-			@Cleanup FileOutputStream tempFileOut = ObjectFactory.buildFileOutputStream(this.folderLocation);
+			@Cleanup OutputStream tempFileOut = ObjectFactory.buildFileOutputStream(this.folderLocation);
 			delegate.zipIt(tempFileOut);
 			this.generateFileList(this.folderLocation);
 		}
@@ -60,7 +59,7 @@ public class EasyZip {
 			zos = new ZipOutputStream(out, this.password);
 
 			for (String file : this.fileList) {
-				FileInputStream in = null;
+				InputStream in = null;
 				ZipParameters zp = new ZipParameters();
 				try {
 					initializeParameters(zp, file, StringUtils.EMPTY);

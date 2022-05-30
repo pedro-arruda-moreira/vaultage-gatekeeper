@@ -26,6 +26,9 @@
 						<property name="emailService" ref="emailService"/>
 					</bean>
 				</entry>
+				<entry key="command">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.ExecuteCommandProvider"/>
+				</entry>
 			</map>
 		</property>
 	</bean>

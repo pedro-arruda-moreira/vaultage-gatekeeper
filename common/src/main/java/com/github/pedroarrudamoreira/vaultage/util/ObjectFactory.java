@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -40,11 +42,11 @@ public class ObjectFactory {
 		return buildFile(path).getAbsolutePath();
 	}
 	
-	public static FileOutputStream buildFileOutputStream(File file) throws FileNotFoundException {
+	public static OutputStream buildFileOutputStream(File file) throws FileNotFoundException {
 		return new FileOutputStream(file);
 	}
 	
-	public static FileInputStream buildFileInputStream(File file) throws FileNotFoundException {
+	public static InputStream buildFileInputStream(File file) throws FileNotFoundException {
 		return new FileInputStream(file);
 	}
 

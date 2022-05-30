@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -20,6 +21,7 @@ import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
 import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
@@ -44,6 +46,7 @@ public class BackupService implements Job {
 
 	@SneakyThrows
 	private void doBackup() {
+		int timeout = 500;
 		for(Entry<String, User> userEntry : authProvider.getUsers().entrySet()) {
 			User user = userEntry.getValue();
 			Map<String, Object> backupConfig = user.getBackupConfig();
@@ -61,10 +64,13 @@ public class BackupService implements Job {
 			if(!vaultageDataFolder.exists()) {
 				continue;
 			}
-			byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder, user.getUserId());
+			final byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder, user.getUserId());
 			for(Map.Entry<BackupProvider, Object> providerConfig : providersForUser) {
-				providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
-						providerConfig.getValue());
+				EventLoop.schedule(() -> {
+					providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
+							providerConfig.getValue());
+				}, timeout, TimeUnit.MILLISECONDS);
+				timeout += 500;
 			}
 		}
 		

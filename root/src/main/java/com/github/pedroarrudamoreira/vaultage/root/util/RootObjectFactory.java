@@ -4,7 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -46,7 +47,7 @@ public class RootObjectFactory {
 		return new ByteArrayInputStream(content);
 	}
 	
-	public static FileOutputStream buildFileOutputStream(File file) throws FileNotFoundException {
+	public static OutputStream buildFileOutputStream(File file) throws FileNotFoundException {
 		return ObjectFactory.buildFileOutputStream(file);
 	}
 	
@@ -55,6 +56,10 @@ public class RootObjectFactory {
 			return new ConcurrentHashMap<>();
 		}
 		return new HashMap<>();
+	}
+	
+	public static File buildTempFile(String prefix, String suffix) throws IOException {
+		return File.createTempFile(prefix, suffix);
 	}
 
 }

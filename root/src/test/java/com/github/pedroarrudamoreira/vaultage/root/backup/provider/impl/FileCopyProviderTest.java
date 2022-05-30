@@ -3,8 +3,8 @@ package com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 
 import org.apache.commons.logging.Log;
@@ -38,7 +38,7 @@ public class FileCopyProviderTest {
 	private static final String FAKE_PATH = "/path/to/file.txt";
 
 	@Mock
-	private FileOutputStream fileOutputStreamMock;
+	private OutputStream fileOutputStreamMock;
 	
 	@Mock
 	private Log logMock;
