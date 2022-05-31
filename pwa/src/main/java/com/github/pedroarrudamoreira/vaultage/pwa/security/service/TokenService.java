@@ -20,15 +20,23 @@ import lombok.Setter;
 public class TokenService implements UserDetailsService {
 	public static final String CRYPTO_TYPE = "crypto_type";
 	public static final String USE_BASIC = "use_basic";
+	public static final String CONFIG_CACHE = "config_cache";
+	public static final String AUTO_CREATE = "auto_create";
 	@Setter
 	private String cryptoType;
 	@Setter
 	private Boolean twoFactorAuth;
+	@Setter
+	private String autoCreate;
+	@Setter
+	private String configCache;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String userPassword;
 		final HttpServletRequest currentRequest = SessionController.getCurrentRequest();
+		currentRequest.setAttribute(AUTO_CREATE, autoCreate);
+		currentRequest.setAttribute(CONFIG_CACHE, configCache);
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);
 		currentRequest.setAttribute(USE_BASIC, Boolean.toString(!twoFactorAuth));
 		String providedToken = currentRequest.getParameter("value");

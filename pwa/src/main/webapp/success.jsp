@@ -18,10 +18,14 @@
 		<input type="hidden" name="use_basic"
 			value="<%=request.getAttribute(TokenService.USE_BASIC) %>" />
 		<input type="hidden" name="self_contained" value="true" />
-		<input type="hidden" name="crypto_type"
+		<input type="hidden" name="<%=TokenService.CRYPTO_TYPE %>"
 			value="<%=request.getAttribute(TokenService.CRYPTO_TYPE) %>" />
 		<input type="hidden" name="desktop"
 			value="<%=request.getParameter("desktop") %>" />
+		<input type="hidden" name="<%=TokenService.CONFIG_CACHE %>"
+			value="<%=request.getAttribute(TokenService.CONFIG_CACHE) %>" />
+		<input type="hidden" name="<%=TokenService.AUTO_CREATE %>"
+			value="<%=request.getAttribute(TokenService.AUTO_CREATE) %>" />
 	</form>
 </body>
 </html>
