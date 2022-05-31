@@ -12,6 +12,11 @@
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.boot.listener.Starter">
 		<property name="userProvider" ref="authProvider" />
+		<property name="serverManager">
+			<bean class="com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager">
+				<property name="userProvider" ref="authProvider" />
+			</bean>
+		</property>
 	</bean>
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ProxyServlet" id="proxyServlet">
