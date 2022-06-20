@@ -31,12 +31,12 @@ public class RootObjectFactory {
 		return new MimeMessage(session);
 	}
 	
-	public static EasyZip buildEasyZip(File folder, String password) {
+	public static EasyZip buildEasyZip(File folder, String password, boolean hideContents) {
 		char[] charArray = null;
 		if(password != null) {
 			charArray = password.toCharArray();
 		}
-		return new EasyZip(folder, charArray);
+		return new EasyZip(folder, charArray, hideContents);
 	}
 	
 	public static ByteArrayOutputStream buildByteArrayOutputStream() {

@@ -28,21 +28,21 @@ public class EasyZip {
 	private final String folderPath;
 
 	private final char[] password;
-
+	
 	private final EasyZip delegate;
 	@SneakyThrows
-	public EasyZip(File folderLocation, char[] password) {
+	public EasyZip(File folderLocation, char[] password, boolean hideContents) {
 		this.password = password;
-		if(this.password == null) {
+		if(this.password == null || !hideContents) {
 			this.folderLocation = folderLocation;
 			delegate = null;
 		} else {
 			File tempFile = File.createTempFile("data_", ".zip");
 			this.folderLocation = tempFile;
-			delegate = new EasyZip(folderLocation, null);
+			delegate = new EasyZip(folderLocation, null, false);
 		}
 		this.folderPath = this.folderLocation.getAbsolutePath();
-		if(this.password == null) {
+		if(this.password == null || !hideContents) {
 			generateFileList(folderLocation);
 		}
 	}

@@ -13,6 +13,7 @@
 		class="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService">
 		<property name="enabled" value="${backup.enabled}"/>
 		<property name="doEncrypt" value="${backup.encrypt}"/>
+		<property name="hideContents" value="${backup.hide-contents:false}"/>
 		<property name="thisServerHost" value="${server.host}"/>
 		<property name="authProvider" ref="authProvider"/>
 		<property name="vaultSynchronizer" ref="vaultSynchronizer" />

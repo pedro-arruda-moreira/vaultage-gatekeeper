@@ -129,7 +129,7 @@ public class BackupServiceTest {
 		Mockito.when(mockFile.exists()).thenReturn(false);
 		backupService.execute(null);
 		PowerMockito.verifyStatic(RootObjectFactory.class, Mockito.never());
-		RootObjectFactory.buildEasyZip(Mockito.any(), Mockito.any());
+		RootObjectFactory.buildEasyZip(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
 	}
 	
 	@Test
@@ -140,7 +140,7 @@ public class BackupServiceTest {
 		user.setBackupConfig(Collections.singletonMap(FAKE_BACKUP_PROVIDER, providerArg));
 		Mockito.when(mockAuthProvider.getUsers()).thenReturn(Collections.singletonMap(FAKE_USER_ID, user));
 		Mockito.when(mockFile.exists()).thenReturn(true);
-		PowerMockito.when(RootObjectFactory.buildEasyZip(mockFile, FAKE_HOST)).thenReturn(easyZipMock);
+		PowerMockito.when(RootObjectFactory.buildEasyZip(mockFile, FAKE_HOST, false)).thenReturn(easyZipMock);
 		backupService.setDoEncrypt(true);
 		backupService.execute(null);
 		// let event loop do its things...

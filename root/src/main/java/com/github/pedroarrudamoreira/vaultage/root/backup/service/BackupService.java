@@ -39,6 +39,8 @@ public class BackupService implements Job {
 
 	private boolean doEncrypt;
 	
+	private boolean hideContents;
+	
 	private Map<String, BackupProvider> providers;
 	
 	@Setter
@@ -79,9 +81,9 @@ public class BackupService implements Job {
 		final ByteArrayOutputStream vaultageDatabase = RootObjectFactory.buildByteArrayOutputStream();
 		EasyZip zipControl = null; 
 		if(doEncrypt) {
-			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, thisServerHost);
+			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, thisServerHost, hideContents);
 		} else {
-			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, null);
+			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, null, false);
 		}
 		final EasyZip zc = zipControl;
 		vaultSynchronizer.runSync(userId, () -> zc.zipIt(vaultageDatabase));
