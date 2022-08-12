@@ -22,6 +22,7 @@ public class TokenService implements UserDetailsService {
 	public static final String USE_BASIC = "use_basic";
 	public static final String CONFIG_CACHE = "config_cache";
 	public static final String AUTO_CREATE = "auto_create";
+	public static final String OFFLINE_ENABLED = "offline_enabled";
 	@Setter
 	private String cryptoType;
 	@Setter
@@ -30,6 +31,8 @@ public class TokenService implements UserDetailsService {
 	private String autoCreate;
 	@Setter
 	private String configCache;
+	@Setter
+	private String offlineEnabled;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -38,6 +41,7 @@ public class TokenService implements UserDetailsService {
 		currentRequest.setAttribute(AUTO_CREATE, autoCreate);
 		currentRequest.setAttribute(CONFIG_CACHE, configCache);
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);
+		currentRequest.setAttribute(OFFLINE_ENABLED, offlineEnabled);
 		currentRequest.setAttribute(USE_BASIC, Boolean.toString(!twoFactorAuth));
 		String providedToken = currentRequest.getParameter("value");
 		if(TokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {

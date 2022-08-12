@@ -26,6 +26,8 @@
 			value="<%=request.getAttribute(TokenService.CONFIG_CACHE) %>" />
 		<input type="hidden" name="<%=TokenService.AUTO_CREATE %>"
 			value="<%=request.getAttribute(TokenService.AUTO_CREATE) %>" />
+		<input type="hidden" name="<%=TokenService.OFFLINE_ENABLED %>"
+			value="<%=request.getAttribute(TokenService.OFFLINE_ENABLED) %>" />
 	</form>
 </body>
 </html>

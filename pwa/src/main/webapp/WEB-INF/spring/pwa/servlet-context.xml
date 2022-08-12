@@ -34,6 +34,7 @@
 		<beans:property name="twoFactorAuth" value="${2fa.enabled:#{false}}"/>
 		<beans:property name="autoCreate" value="${mobile.auto_create_vault:false}"/>
 		<beans:property name="configCache" value="${mobile.config_cache:false}"/>
+		<beans:property name="offlineEnabled" value="${mobile.offline_enabled:false}"/>
 	</beans:bean>
 		
 	<beans:bean class="com.github.pedroarrudamoreira.vaultage.pwa.security.filter.DisableSecurityFilter"
