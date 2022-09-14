@@ -15,7 +15,7 @@
 <body>
 	Taking you to the PWA now.
 	<form method="get" action="/pwa" id="frm1">
-		<input type="hidden" name="use_basic"
+		<input type="hidden" name="<%=TokenService.USE_BASIC %>"
 			value="<%=request.getAttribute(TokenService.USE_BASIC) %>" />
 		<input type="hidden" name="self_contained" value="true" />
 		<input type="hidden" name="<%=TokenService.CRYPTO_TYPE %>"
@@ -28,6 +28,8 @@
 			value="<%=request.getAttribute(TokenService.AUTO_CREATE) %>" />
 		<input type="hidden" name="<%=TokenService.OFFLINE_ENABLED %>"
 			value="<%=request.getAttribute(TokenService.OFFLINE_ENABLED) %>" />
+		<input type="hidden" name="extra_links" 
+			value="PGJyLz48YSBocmVmPSIvIj4mbHQ7IFJlbG9hZCBDb25maWc8L2E+"/>
 	</form>
 </body>
 </html>
