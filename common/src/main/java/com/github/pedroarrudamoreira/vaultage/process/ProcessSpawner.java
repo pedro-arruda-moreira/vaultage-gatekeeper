@@ -72,8 +72,8 @@ public class ProcessSpawner {
 		String commandString = String.join(" ", realCommand);
 		final int processNumber = PROCESS_COUNTER.incrementAndGet();
 		log.info(String.format("Process number %d is [%s]", processNumber, commandString));
-		buildLogThread(process, commandString, Level.INFO, processNumber);
-		buildLogThread(process, commandString, Level.SEVERE, processNumber);
+		buildLogThread(process, Level.INFO, processNumber);
+		buildLogThread(process, Level.SEVERE, processNumber);
 		if(!doWait) {
 			return process;
 		}
@@ -85,10 +85,9 @@ public class ProcessSpawner {
 		return null;
 	}
 
-	private void buildLogThread(Process process, String commandString, Level level,
-			int processNumber) throws UnsupportedEncodingException {
-		InputStream input;
-		input = getStream(process, level);
+	private void buildLogThread(Process process, Level level,
+			int processNumber) {
+		InputStream input = getStream(process, level);
 		Supplier<Boolean> logRunnable = () -> {
 			try {
 				int availableBytes = input.available();
@@ -117,7 +116,7 @@ public class ProcessSpawner {
 			}
 			return process.isAlive();
 		};
-		EventLoop.repeatTask(logRunnable, 700l, TimeUnit.MILLISECONDS);
+		EventLoop.repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
 	}
 
 	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)
