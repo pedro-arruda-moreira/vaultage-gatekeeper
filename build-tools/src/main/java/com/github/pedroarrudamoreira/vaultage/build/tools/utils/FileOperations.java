@@ -2,6 +2,8 @@ package com.github.pedroarrudamoreira.vaultage.build.tools.utils;
 
 import java.io.File;
 
+import com.github.pedroarrudamoreira.vaultage.build.tools.NpmInstaller;
+import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawnerOptions;
 import org.apache.commons.lang3.SystemUtils;
 
 import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
@@ -17,19 +19,28 @@ public class FileOperations {
         boolean isWindows = SystemUtils.IS_OS_WINDOWS;
         if (isWindows) {
             ProcessSpawner.executeProcessAndWait(
-                    retVal -> retVal <= 7,
-                    "robocopy",
-                    ObjectFactory.normalizePath(origin),
-                    ObjectFactory.normalizePath(destination),
-                    "/E"
-            );
+                    ProcessSpawnerOptions.builder()
+                            .failureCodeHandler(retVal -> retVal <= 7)
+                            .command(new String[]{
+                                    "robocopy",
+                                    ObjectFactory.normalizePath(origin),
+                                    ObjectFactory.normalizePath(destination),
+                                    "/E"
+                            })
+                            .loop(NpmInstaller.loop)
+                            .build());
         } else {
             ProcessSpawner.executeProcessAndWait(
-                    "cp",
-                    "-r",
-                    ObjectFactory.normalizePath(origin),
-                    ObjectFactory.normalizePath(destination)
-            );
+                    ProcessSpawnerOptions.builder()
+                            .command(new String[]{
+                                    "cp",
+                                    "-r",
+                                    ObjectFactory.normalizePath(origin),
+                                    ObjectFactory.normalizePath(destination)
+                            })
+                            .loop(NpmInstaller.loop)
+                            .build());
+
         }
     }
 

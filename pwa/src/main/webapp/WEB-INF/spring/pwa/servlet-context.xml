@@ -7,7 +7,7 @@
 						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
+	<context:property-placeholder location="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/config.properties"/>
 	<http use-expressions="true">
 		<csrf disabled="true" />
 		<intercept-url pattern="/auth" access="permitAll" />

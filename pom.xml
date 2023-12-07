@@ -36,4 +36,23 @@
 		</dependency>
 
 	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>io.openliberty.tools</groupId>
+				<artifactId>liberty-maven-plugin</artifactId>
+				<version>3.8.2</version>
+				<configuration>
+					<runtimeArtifact>
+						<groupId>io.openliberty</groupId>
+						<artifactId>openliberty-kernel</artifactId>
+						<version>23.0.0.6</version>
+						<type>zip</type>
+					</runtimeArtifact>
+					<jvmOptions>-Dgatekeeper.properties.dir=${project.basedir}/../local-config</jvmOptions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
 </project>

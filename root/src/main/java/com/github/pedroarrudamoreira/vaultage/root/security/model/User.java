@@ -43,7 +43,7 @@ public class User {
 	public String getDataDir() {
 		if(dataDir == null) {
 			dataDir = ObjectFactory.normalizePath(SessionController.getApplicationContext(
-					).getEnvironment().resolvePlaceholders("${user.home}/.vaultage"));
+					).getEnvironment().resolvePlaceholders("${gatekeeper.properties.dir:user.home}/.vaultage"));
 		}
 		return dataDir;
 	}

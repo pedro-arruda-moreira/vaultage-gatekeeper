@@ -38,7 +38,7 @@
 	</bean>
 	
 	<bean id="authProvider" class="com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider">
-		<property name="userConfigFile" value="file:${user.home}/vaultage-security-facade/users.json"></property>
+		<property name="userConfigFile" value="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/users.json"></property>
 	</bean>
 	
 	<sec:http use-expressions="true" >

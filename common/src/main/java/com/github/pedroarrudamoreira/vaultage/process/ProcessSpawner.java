@@ -33,31 +33,22 @@ public class ProcessSpawner {
 	
 	private static final String [] SUFFIXES = new String[] {StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe"};
 	
-	private final String[] command;
-	
-	private final IntFunction<Boolean> failureCodeHandler;
-	
-	private final Consumer<String> logConsumer;
+	private final ProcessSpawnerOptions options;
 
-	public static Process executeProcess(Consumer<String> logConsumer, String ... command) throws Exception {
-		return new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, logConsumer).tryExecution(false);
+	public static Process executeProcess(ProcessSpawnerOptions options) throws Exception {
+		return new ProcessSpawner(options).tryExecution(false);
 	}
 
-	public static void executeProcessAndWait(String ... command) throws Exception {
-		new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, null).tryExecution(true);
-	}
-
-	public static void executeProcessAndWait(IntFunction<Boolean> failureCodeHandler,
-			String ... command) throws Exception {
-		new ProcessSpawner(command, failureCodeHandler, null).tryExecution(true);
+	public static void executeProcessAndWait(ProcessSpawnerOptions options) throws Exception {
+		new ProcessSpawner(options).tryExecution(true);
 	}
 
 	private Process tryExecution(boolean doWait) throws Exception {
-		String[] realCommand = new String[command.length];
-		System.arraycopy(command, 1, realCommand, 1, command.length - 1);
+		String[] realCommand = new String[options.command.length];
+		System.arraycopy(options.command, 1, realCommand, 1, options.command.length - 1);
 		Exception caughEx = null;
 		for(String suffix : SUFFIXES) {
-			realCommand[0] = command[0] + suffix;
+			realCommand[0] = options.command[0] + suffix;
 			try {
 				return doExecute(doWait, realCommand);
 			} catch (IOException e) {
@@ -78,7 +69,7 @@ public class ProcessSpawner {
 			return process;
 		}
 		int retVal = process.waitFor();
-		if(!failureCodeHandler.apply(retVal)) {
+		if(!options.failureCodeHandler.apply(retVal)) {
 			throw new RuntimeException(String.format("command %s failed with status %d",
 					commandString, retVal));
 		}
@@ -100,8 +91,8 @@ public class ProcessSpawner {
 					if(StringUtils.isBlank(line)) {
 						continue;
 					}
-					if(logConsumer != null && line.startsWith("%MSG:")) {
-						logConsumer.accept(line.substring(5));
+					if(options.logConsumer != null && line.startsWith("%MSG:")) {
+						options.logConsumer.accept(line.substring(5));
 						continue;
 					}
 					Object logLine = buildLog(processNumber, line);
@@ -116,7 +107,7 @@ public class ProcessSpawner {
 			}
 			return process.isAlive();
 		};
-		EventLoop.repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
+		options.loop.repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
 	}
 
 	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)

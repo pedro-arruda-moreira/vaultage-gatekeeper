@@ -43,7 +43,7 @@
 				<artifactId>maven-ear-plugin</artifactId>
 				<version>3.0.2</version>
 				<configuration>
-					<defaultLibBundleDir>/lib</defaultLibBundleDir>
+					<defaultLibBundleDir>lib</defaultLibBundleDir>
 					<modules>
 						<webModule>
 							<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>

@@ -1,0 +1,23 @@
+{
+	"teste": {
+		"data-dir": "T:\\vtg_teste1",
+		"basic-password": "teste",
+		"email": "teste@teste.com",
+		"port":3000,
+		"backup-config": {
+			"file": [
+				"T:\\teste_bkp"
+			]
+		},
+		"desktop-cli": false
+	},
+	"teste2": {
+		"data-dir": "T:\\vtg_teste8",
+		"basic-password": "teste",
+		"email": "teste@teste.com",
+		"port":3300,
+		"backup-config": {
+		},
+		"desktop-cli": true
+	}
+}
