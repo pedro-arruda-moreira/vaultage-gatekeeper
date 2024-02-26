@@ -9,7 +9,7 @@ import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 public class NpmInstaller {
-    public static final EventLoop loop = new EventLoop("build");
+    public static final EventLoop loop = new EventLoop();
 
     public static void main(String[] args) {
         try {

@@ -25,6 +25,9 @@ public class ChannelDecidingServlet extends HttpServlet {
 	@Setter
 	private AuthenticationProvider authProvider;
 
+	@Setter
+	private TokenManager tokenManager;
+
 	private Pattern mobilePattern;
 	
 	public void setMobilePattern(String mobilePattern) {
@@ -52,7 +55,7 @@ public class ChannelDecidingServlet extends HttpServlet {
 
 	private void sendToPWA(HttpServletRequest req, HttpServletResponse resp,
 			boolean desktopMode) throws IOException, ServletException {
-		req.setAttribute(TOKEN_KEY, TokenManager.generateNewToken(TokenType.GLOBAL));
+		req.setAttribute(TOKEN_KEY, tokenManager.generateNewToken(TokenType.GLOBAL));
 		req.setAttribute(DESKTOP_MODE_KEY, String.valueOf(desktopMode));
 		req.getServletContext().getRequestDispatcher("/mobile.jsp").forward(req, resp);
 	}

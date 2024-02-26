@@ -49,6 +49,12 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 
 	private ServletContext servletContext;
 
+	@Setter
+	private TokenManager tokenManager;
+
+	@Setter
+	private EventLoop eventLoop;
+
 
 	@Override
 	protected void doFilterImpl(HttpServletRequest request, HttpServletResponse response,
@@ -63,8 +69,8 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 			return;
 		}
 		String receivedToken = request.getParameter(EMAIL_TOKEN_KEY);
-		if(TokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
-				TokenManager.removeToken(receivedToken)) {
+		if(tokenManager.isTokenValid(receivedToken, TokenType.SESSION) &&
+				tokenManager.removeToken(receivedToken)) {
 			httpSession.setAttribute(ALREADY_VALIDATED_KEY, ObjectFactory.PRESENT);
 			this.servletContext.getRequestDispatcher(
 					CHANNEL_SELECTOR_LOCATION).forward(request, response);
@@ -85,11 +91,11 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 
 		synchronized (httpSession) {
 			if(httpSession.getAttribute(EMAIL_SENT_KEY) == null) {
-				String token = TokenManager.generateNewToken(TokenType.SESSION);
+				String token = tokenManager.generateNewToken(TokenType.SESSION);
 				httpSession.setAttribute(EMAIL_SENT_KEY, ObjectFactory.PRESENT);
 				String formAction = formatFormAction(request);
 				String emailAddr = authProvider.getCurrentUser().getEmail();
-				EventLoop.execute(() -> {
+				eventLoop.execute(() -> {
 					try {
 						String emailContent = extractEmailContent(token, request, formAction);
 

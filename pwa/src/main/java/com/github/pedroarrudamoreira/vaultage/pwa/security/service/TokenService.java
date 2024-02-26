@@ -33,6 +33,8 @@ public class TokenService implements UserDetailsService {
 	private String configCache;
 	@Setter
 	private String offlineEnabled;
+	@Setter
+	private TokenManager tokenManager;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -44,8 +46,8 @@ public class TokenService implements UserDetailsService {
 		currentRequest.setAttribute(OFFLINE_ENABLED, offlineEnabled);
 		currentRequest.setAttribute(USE_BASIC, Boolean.toString(!twoFactorAuth));
 		String providedToken = currentRequest.getParameter("value");
-		if(TokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {
-			TokenManager.removeToken(providedToken);
+		if(tokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {
+			tokenManager.removeToken(providedToken);
 			userPassword = providedToken;
 		} else {
 			userPassword = UUID.randomUUID().toString();

@@ -64,6 +64,7 @@
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
+			classpath:META-INF/spring/common.xml,
 			WEB-INF/spring/root/root.xml,
 			WEB-INF/spring/root/security.xml,
 			WEB-INF/spring/root/backup.xml

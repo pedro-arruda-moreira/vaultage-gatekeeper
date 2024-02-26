@@ -18,13 +18,13 @@ public class GlobalTokenSupplier implements ITokenSupplier {
 	private static final File TOKEN_DIR = new File(new File(SystemUtils.USER_HOME),
 			".vaultage_web_app_pwa_tokens");
 
-	static {
+	public GlobalTokenSupplier(EventLoop eventLoop) {
 		if(!TOKEN_DIR.exists() && !TOKEN_DIR.mkdirs()) {
 			throw new IllegalStateException("could not create token dir!");
 		}
-		
 
-		EventLoop.repeatTask(() -> {
+
+		eventLoop.repeatTask(() -> {
 			Instant now = new Date().toInstant();
 			File[] tokens = TOKEN_DIR.listFiles();
 			for(File token : tokens) {

@@ -23,7 +23,7 @@ import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SessionController.class, ObjectFactory.class})
+@PrepareForTest({ObjectFactory.class})
 public class SessionTokenSupplierTest {
 	
 	@Mock
@@ -38,6 +38,9 @@ public class SessionTokenSupplierTest {
 	
 	private SessionTokenSupplier impl;
 
+	@Mock
+	private SessionController sessionController;
+
 	@BeforeClass
 	public static void setupStatic() {
 		TestUtils.doPrepareForTest();
@@ -47,8 +50,8 @@ public class SessionTokenSupplierTest {
 	public void setup() {
 		setupStatic();
 		tokens = new HashSet<>();
-		impl = new SessionTokenSupplier();
-		PowerMockito.when(SessionController.getCurrentRequest()).thenReturn(mockRequest);
+		impl = new SessionTokenSupplier(sessionController);
+		Mockito.when(sessionController.getCurrentRequest()).thenReturn(mockRequest);
 		PowerMockito.when(ObjectFactory.generateUUID()).thenReturn(MOCK_TOKEN);
 		Mockito.when(mockRequest.getSession()).thenReturn(mockSession);
 		Mockito.when(mockSession.getAttribute(

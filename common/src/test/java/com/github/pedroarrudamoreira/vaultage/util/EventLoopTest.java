@@ -14,11 +14,12 @@ public class EventLoopTest {
 	@Test(expected = ExecutionException.class)
 	@SneakyThrows
 	public void test_ExceptionOnOneTask_DoesNotInterfereWithAnother() {
+		final EventLoop eventLoop = new EventLoop();
 		final boolean[] executed = new boolean[] {false};
-		EventLoop.schedule(() -> {
+		eventLoop.schedule(() -> {
 			executed[0] = true;
 		}, 1000, TimeUnit.MILLISECONDS);
-		final ScheduledFuture<?> scheduled = EventLoop.schedule(() -> {
+		final ScheduledFuture<?> scheduled = eventLoop.schedule(() -> {
 			throw new NullPointerException();
 		}, 500, TimeUnit.MILLISECONDS);
 		Thread.sleep(1500);

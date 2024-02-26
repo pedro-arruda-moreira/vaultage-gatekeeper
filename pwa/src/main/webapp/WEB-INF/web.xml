@@ -100,6 +100,9 @@
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>WEB-INF/spring/pwa/servlet-context.xml</param-value>
+		<param-value>
+			classpath:META-INF/spring/common.xml,
+			WEB-INF/spring/pwa/servlet-context.xml
+		</param-value>
 	</context-param>
 </web-app>

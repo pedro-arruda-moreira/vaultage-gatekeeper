@@ -56,6 +56,8 @@ public class EmailService implements InitializingBean {
 	private EasySSLSocketFactory sslContextFactory;
 	@Getter @Setter
 	private boolean enabled;
+	@Setter
+	private EventLoop eventLoop;
 	
 	private Properties emailProperties;
 	
@@ -93,7 +95,7 @@ public class EmailService implements InitializingBean {
 
 
 		message.setContent(multipart);
-		EventLoop.execute(() -> {
+		eventLoop.execute(() -> {
 			try {
 				Transport.send(message);
 			} catch (MessagingException e) {

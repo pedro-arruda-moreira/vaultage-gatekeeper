@@ -1,26 +1,32 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import lombok.Setter;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+public class EventLoop implements BeanClassLoaderAware {
 
-public class EventLoop {
+    @Setter
+    private ClassLoader beanClassLoader;
 
-    public EventLoop(String name) {
-        executor = new ScheduledThreadPoolExecutor(1,
-                new BasicThreadFactory.Builder().daemon(
-                        true).namingPattern("vaultage gatekeeper event loop thread - " + name).build());
+    public interface Task {
+        void run();
     }
 
-    private final ScheduledThreadPoolExecutor executor;
+    static  {
+        executor = Executors.newSingleThreadScheduledExecutor(new BasicThreadFactory.Builder().daemon(
+                true).namingPattern("vaultage gatekeeper event loop thread").build());
+    }
+
+    private static final ScheduledExecutorService executor;
 
 
     public void repeatTask(final Supplier<Boolean> task, final long timeAmount,
                            final TimeUnit timeUnit) {
-        Runnable command = new Runnable() {
+        Task command = new Task() {
 
             @Override
             public void run() {
@@ -32,12 +38,21 @@ public class EventLoop {
         execute(command);
     }
 
-    public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-        return executor.schedule(command, delay, unit);
+    public ScheduledFuture<?> schedule(Task command, long delay, TimeUnit unit) {
+        return executor.schedule(wrap(command), delay, unit);
     }
 
-    public void execute(Runnable command) {
-        executor.execute(command);
+    public void execute(Task command) {
+        executor.execute(wrap(command));
+    }
+
+    private Runnable wrap(Task command) {
+        return () -> {
+            if(beanClassLoader != null) {
+                Thread.currentThread().setContextClassLoader(beanClassLoader);
+            }
+            command.run();
+        };
     }
 
     public void shutdown() {

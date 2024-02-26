@@ -15,6 +15,7 @@ import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
 
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProxyServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	@Setter
@@ -23,6 +24,10 @@ public class ProxyServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	@Setter
 	private VaultSynchronizer vaultSynchronizer;
 
+	@Autowired
+	@Setter
+	private SessionController sessionController;
+
 	/**
 	 * 
 	 */
@@ -30,7 +35,7 @@ public class ProxyServlet extends org.mitre.dsmiley.httpproxy.ProxyServlet {
 	
 	@Override
 	protected String rewritePathInfoFromRequest(HttpServletRequest servletRequest) {
-		return SessionController.getOriginalUrl();
+		return sessionController.getOriginalUrl();
 	}
 	
 	@Override

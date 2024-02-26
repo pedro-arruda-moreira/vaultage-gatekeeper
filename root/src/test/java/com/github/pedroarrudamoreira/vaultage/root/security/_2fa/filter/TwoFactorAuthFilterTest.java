@@ -32,7 +32,7 @@ import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, TokenManager.class, EventLoop.class})
+@PrepareForTest({ObjectFactory.class})
 public class TwoFactorAuthFilterTest {
 	
 	private static final String FAKE_PASSWORD = "myp4ss";
@@ -69,6 +69,12 @@ public class TwoFactorAuthFilterTest {
 	
 	@Mock
 	private EmailService emailServiceMock;
+	
+	@Mock
+	private TokenManager tokenManager;
+
+	@Mock
+	private EventLoop eventLoop;
 	
 	private TwoFactorAuthFilter impl;
 	
@@ -123,9 +129,9 @@ public class TwoFactorAuthFilterTest {
 	public void testDoFilter_ValidToken() throws Exception {
 		Mockito.when(httpServletRequestMock.getParameter(
 				TwoFactorAuthFilter.EMAIL_TOKEN_KEY)).thenReturn(UUID.randomUUID().toString());
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+		Mockito.when(tokenManager.isTokenValid(Mockito.any(),
 				Mockito.eq(TokenType.SESSION))).thenReturn(true);
-		PowerMockito.when(TokenManager.removeToken(Mockito.any())).thenReturn(true);
+		Mockito.when(tokenManager.removeToken(Mockito.any())).thenReturn(true);
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
 		Mockito.verify(channelSelectorDispatcherMock).forward(httpServletRequestMock, httpServletResponseMock);
 		Mockito.verify(httpSessionMock).setAttribute(TwoFactorAuthFilter.ALREADY_VALIDATED_KEY,
@@ -135,9 +141,9 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_PasswordEmptyAndNotProvided() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+		Mockito.when(tokenManager.isTokenValid(Mockito.any(),
 				Mockito.eq(TokenType.SESSION))).thenReturn(true);
-		PowerMockito.when(TokenManager.removeToken(Mockito.any())).thenReturn(false);
+		Mockito.when(tokenManager.removeToken(Mockito.any())).thenReturn(false);
 		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
 		Mockito.verify(emailPasswordDispatcherMock).forward(httpServletRequestMock,
 				httpServletResponseMock);
@@ -147,7 +153,7 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_PasswordEmptyAndProvided_EmailSent() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+		Mockito.when(tokenManager.isTokenValid(Mockito.any(),
 				Mockito.eq(TokenType.SESSION))).thenReturn(false);
 		Mockito.when(httpServletRequestMock.getParameter(
 				TwoFactorAuthFilter.EMAIL_PASSWORD_REQUEST_KEY)).thenReturn(FAKE_PASSWORD);
@@ -167,9 +173,9 @@ public class TwoFactorAuthFilterTest {
 
 	@Test
 	public void testDoFilter_NoAuth_MustSendEmail() throws Exception {
-		PowerMockito.when(TokenManager.isTokenValid(Mockito.any(),
+		Mockito.when(tokenManager.isTokenValid(Mockito.any(),
 				Mockito.eq(TokenType.SESSION))).thenReturn(false);
-		PowerMockito.when(TokenManager.generateNewToken(
+		Mockito.when(tokenManager.generateNewToken(
 				Mockito.eq(TokenType.SESSION))).thenReturn(FAKE_TOKEN);
 		impl.setThisServerHost(FAKE_HOST);
 		Mockito.when(emailServiceMock.isAuthenticationConfigured()).thenReturn(true);
@@ -178,11 +184,10 @@ public class TwoFactorAuthFilterTest {
 		user.setEmail(FAKE_EMAIL_ADDR);
 		Mockito.when(authProvider.getCurrentUser()).thenReturn(user);
 		String[] emailContent = new String[1];
-		PowerMockito.doAnswer((i) -> {
-			i.getArgument(0, Runnable.class).run();
+		Mockito.doAnswer((i) -> {
+			i.getArgument(0, EventLoop.Task.class).run();
 			return null;
-		}).when(EventLoop.class);
-		EventLoop.execute(Mockito.any());
+		}).when(eventLoop).execute(Mockito.any());
 		Mockito.doAnswer(new ArgumentCatcher<Void>(v -> emailContent[0] = v.get(), 2)).when(
 				emailServiceMock).sendEmail(Mockito.eq(FAKE_EMAIL_ADDR), Mockito.eq(TwoFactorAuthFilter.SUBJECT), Mockito.any(),
 						Mockito.eq(null));

@@ -4,14 +4,21 @@ import org.quartz.SchedulerConfigException;
 import org.quartz.spi.ThreadPool;
 
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import org.springframework.web.context.ContextLoader;
 
 public class EventLoopQuartzThreadPool implements ThreadPool {
+
+	private final EventLoop eventLoop;
+
+	public EventLoopQuartzThreadPool() {
+		eventLoop = ContextLoader.getCurrentWebApplicationContext().getBean(EventLoop.class);
+	}
 
 	private static final int THE_ONLY_THREAD = 1;
 
 	@Override
 	public boolean runInThread(Runnable runnable) {
-		EventLoop.execute(runnable);
+		eventLoop.execute(runnable::run);
 		return true;
 	}
 

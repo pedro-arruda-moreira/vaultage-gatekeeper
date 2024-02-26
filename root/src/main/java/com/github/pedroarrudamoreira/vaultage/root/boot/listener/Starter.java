@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletContext;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
@@ -24,6 +25,10 @@ public class Starter implements ServletContextAware {
 	
 	@Setter
 	private VaultageServerManager serverManager;
+
+	@Setter
+	@Autowired
+	private EventLoop eventLoop;
 
 
 	@Override
@@ -49,7 +54,7 @@ public class Starter implements ServletContextAware {
 
 
 	private void doConfigureVaultageServers(ServletContext servletContext, Map<String, User> users) {
-		EventLoop.repeatTask(() -> {
+		eventLoop.repeatTask(() -> {
 			if (SessionController.getApplicationContext() == null) {
 				return true;
 			}

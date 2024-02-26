@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 
 import lombok.AccessLevel;
@@ -111,13 +110,12 @@ public class ProcessSpawner {
 	}
 
 	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)
-			throws IOException, UnsupportedEncodingException {
+			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		IOUtils.copy(input, baos, availableBytes);
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 		InputStreamReader isr = buildReader(bais);
-		BufferedReader br = new BufferedReader(isr, 1);
-		return br;
+		return new BufferedReader(isr, 1);
 	}
 
 	private InputStream getStream(Process process, Level level) {

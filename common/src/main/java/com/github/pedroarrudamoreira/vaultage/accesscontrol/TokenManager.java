@@ -7,30 +7,33 @@ import java.util.Map;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.GlobalTokenSupplier;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.ITokenSupplier;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.SessionTokenSupplier;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public final class TokenManager {
 	
-	private static final Map<TokenType, ITokenSupplier> SUPPLIERS;
+	private final Map<TokenType, ITokenSupplier> suppliers;
 	
-	static {
-		SUPPLIERS = new EnumMap<>(TokenType.class);
-		SUPPLIERS.put(TokenType.GLOBAL, new GlobalTokenSupplier());
-		SUPPLIERS.put(TokenType.SESSION, new SessionTokenSupplier());
-	}
-	private TokenManager() {
-		super();
+
+	public TokenManager(
+			@Autowired EventLoop eventLoop,
+			@Autowired SessionController sessionController
+	) {
+		suppliers = new EnumMap<>(TokenType.class);
+		suppliers.put(TokenType.GLOBAL, new GlobalTokenSupplier(eventLoop));
+		suppliers.put(TokenType.SESSION, new SessionTokenSupplier(sessionController));
 	}
 
-	public static String generateNewToken(TokenType type) throws IOException {
-		return SUPPLIERS.get(type).generateNewToken();
+	public String generateNewToken(TokenType type) throws IOException {
+		return suppliers.get(type).generateNewToken();
 	}
 	
-	public static boolean isTokenValid(String uuid, TokenType type) {
-		return SUPPLIERS.get(type).isTokenValid(uuid);
+	public boolean isTokenValid(String uuid, TokenType type) {
+		return suppliers.get(type).isTokenValid(uuid);
 	}
 	
-	public static boolean removeToken(String uuid) {
-		for(ITokenSupplier current : SUPPLIERS.values()) {
+	public boolean removeToken(String uuid) {
+		for(ITokenSupplier current : suppliers.values()) {
 			if(current.removeToken(uuid)) {
 				return true;
 			}

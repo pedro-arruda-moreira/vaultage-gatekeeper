@@ -46,6 +46,8 @@ public class BackupService implements Job {
 	@Setter
 	private VaultSynchronizer vaultSynchronizer;
 
+	@Setter
+	private EventLoop eventLoop;
 	@SneakyThrows
 	private void doBackup() {
 		int timeout = 500;
@@ -68,7 +70,7 @@ public class BackupService implements Job {
 			}
 			final byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder, user.getUserId());
 			for(Map.Entry<BackupProvider, Object> providerConfig : providersForUser) {
-				EventLoop.schedule(() -> {
+				eventLoop.schedule(() -> {
 					providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
 							providerConfig.getValue());
 				}, timeout, TimeUnit.MILLISECONDS);
@@ -87,8 +89,7 @@ public class BackupService implements Job {
 		}
 		final EasyZip zc = zipControl;
 		vaultSynchronizer.runSync(userId, () -> zc.zipIt(vaultageDatabase));
-		byte[] vaultageDatabaseBytes = vaultageDatabase.toByteArray();
-		return vaultageDatabaseBytes;
+		return vaultageDatabase.toByteArray();
 	}
 	private List<Map.Entry<BackupProvider, Object>> findProvidersForUser(Map<String, Object> backupConfig,
 			String userId) {

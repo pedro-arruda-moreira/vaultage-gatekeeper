@@ -17,6 +17,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
@@ -54,13 +55,13 @@ public class SessionController extends OncePerRequestFilter implements HttpSessi
 	private static int maxSessionsPerDay = -1;
 
 	private static int maxLoginAttemptsPerSession = -1;
-	static {
-		EventLoop.repeatTask(() -> {
+	public SessionController(@Autowired EventLoop eventLoop) {
+		eventLoop.repeatTask(() -> {
 			log.info("clearing login attempts - hour");
 			REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
 			return true;
 		}, 1, TimeUnit.HOURS);
-		EventLoop.repeatTask(() -> {
+		eventLoop.repeatTask(() -> {
 			log.info("clearing login attempts - day");
 			REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
 			return true;
@@ -94,11 +95,11 @@ public class SessionController extends OncePerRequestFilter implements HttpSessi
 	}
 
 	
-	public static HttpServletRequest getCurrentRequest() {
+	public HttpServletRequest getCurrentRequest() {
 		return (HttpServletRequest) REQUESTS.get();
 	}
 
-	public static String getOriginalUrl() {
+	public String getOriginalUrl() {
 		return REQUESTS.get().getAttribute(ORIGINAL_URL).toString();
 	}
 	
