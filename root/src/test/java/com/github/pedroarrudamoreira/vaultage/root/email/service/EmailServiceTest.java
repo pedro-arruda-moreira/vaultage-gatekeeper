@@ -67,6 +67,9 @@ public class EmailServiceTest {
 	
 	@Mock
 	private ExecutorService mockExecutorService;
+
+	@Mock
+	private EventLoop eventLoop;
 	
 	@BeforeClass
 	public static void setupStatic() {
@@ -82,12 +85,12 @@ public class EmailServiceTest {
 		PowerMockito.when(RootObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
 						v -> obtainedAuthenticator = v.get(), 1));
-		PowerMockito.doAnswer((i) -> {
+		Mockito.doAnswer((i) -> {
 			i.getArgument(0, Runnable.class).run();
 			return null;
-		}).when(EventLoop.class);
-		EventLoop.execute(Mockito.any());
+		}).when(eventLoop).execute(Mockito.any());
 		impl = new EmailService();
+		impl.setEventLoop(eventLoop);
 		impl.setSslContextFactory(mockSslFactory);
 		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
 	}

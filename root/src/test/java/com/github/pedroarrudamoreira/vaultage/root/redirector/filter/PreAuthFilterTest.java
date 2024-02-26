@@ -27,6 +27,9 @@ public class PreAuthFilterTest {
 	
 	@Mock
 	private HttpServletResponse responseMock;
+
+	@Mock
+	private SessionController sessionController;
 	
 	@Mock
 	private HttpServletRequest requestMock;
@@ -48,13 +51,14 @@ public class PreAuthFilterTest {
 	@Before
 	public void setup() {
 		setupStatic();
+		unit.setSessionController(sessionController);
 		Mockito.when(requestMock.getServletContext()).thenReturn(servletContextMock);
 		Mockito.when(servletContextMock.getRequestDispatcher("/select-channel.jsp")).thenReturn(requestDispatcherMock);
 	}
 	
 	@Test
 	public void testFirstAccess() throws Exception {
-		PowerMockito.when(SessionController.getOriginalUrl()).thenReturn("/");
+		PowerMockito.when(sessionController.getOriginalUrl()).thenReturn("/");
 		Mockito.when(requestMock.getParameter("cli")).thenReturn(null);
 		unit.doFilter(requestMock, responseMock, filterChainMock);
 		Mockito.verify(requestDispatcherMock).forward(requestMock, responseMock);
@@ -62,7 +66,7 @@ public class PreAuthFilterTest {
 	
 	@Test
 	public void testCliTrue() throws Exception {
-		PowerMockito.when(SessionController.getOriginalUrl()).thenReturn("/");
+		PowerMockito.when(sessionController.getOriginalUrl()).thenReturn("/");
 		Mockito.when(requestMock.getParameter("cli")).thenReturn("true");
 		unit.doFilter(requestMock, responseMock, filterChainMock);
 		Mockito.verify(responseMock, Mockito.never()).sendRedirect("/select-channel");
@@ -71,7 +75,7 @@ public class PreAuthFilterTest {
 	
 	@Test
 	public void testOtherContext() throws Exception {
-		PowerMockito.when(SessionController.getOriginalUrl()).thenReturn("/something");
+		PowerMockito.when(sessionController.getOriginalUrl()).thenReturn("/something");
 		unit.doFilter(requestMock, responseMock, filterChainMock);
 		Mockito.verify(responseMock, Mockito.never()).sendRedirect("/select-channel");
 		Mockito.verify(filterChainMock).doFilter(requestMock, responseMock);

@@ -43,6 +43,9 @@ public class StarterTest {
 	@Mock
 	private Environment environmentMock;
 
+	@Mock
+	private EventLoop eventLoop;
+
 	private Starter impl;
 
 	private Supplier<Boolean> obtainedFunction;
@@ -57,14 +60,14 @@ public class StarterTest {
 		setupStatic();
 		obtainedFunction = null;
 		impl = new Starter();
+		impl.setEventLoop(eventLoop);
 		impl.setServerManager(serverManagerMock);
 		impl.setUserProvider(userProviderMock);
 		Mockito.when(applicationContextMock.getEnvironment()).thenReturn(environmentMock);
-		PowerMockito.doAnswer(i -> {
+		Mockito.doAnswer(i -> {
 			obtainedFunction = i.getArgument(0, Supplier.class);
 			return null;
-		}).when(EventLoop.class);
-		EventLoop.repeatTask(Mockito.any(), Mockito.anyLong(), Mockito.any());
+		}).when(eventLoop).repeatTask(Mockito.any(), Mockito.anyLong(), Mockito.any());
 	}
 
 	@Test(expected = IllegalArgumentException.class)

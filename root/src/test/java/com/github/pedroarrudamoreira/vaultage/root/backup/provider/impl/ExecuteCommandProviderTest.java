@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,6 +47,9 @@ public class ExecuteCommandProviderTest {
 	
 	@Mock
 	private Process processMock;
+
+	@Mock
+	private EventLoop eventLoop;
 	
 	private ExecuteCommandProvider impl;
 	
@@ -62,7 +66,7 @@ public class ExecuteCommandProviderTest {
 		Mockito.when(tempFileMock.getParentFile()).thenReturn(tempFolderMock);
 		PowerMockito.when(ObjectFactory.buildFile(Mockito.eq(tempFolderMock), Mockito.anyString())).thenReturn(theFileMock);
 		PowerMockito.when(ObjectFactory.buildFileOutputStream(theFileMock)).thenReturn(outMock);
-		impl = new ExecuteCommandProvider();
+		impl = new ExecuteCommandProvider(eventLoop);
 	}
 	
 	@Test
@@ -71,8 +75,8 @@ public class ExecuteCommandProviderTest {
 		Mockito.when(processMock.isAlive()).thenReturn(true).thenReturn(false);
 		Mockito.when(theFileMock.getAbsolutePath()).thenReturn("path");
 		final String[] obtainedProcessArgument = new String[1];
-		PowerMockito.when(ProcessSpawner.executeProcess(Mockito.any(), Mockito.any())).thenAnswer((i) -> {
-			obtainedProcessArgument[0] = i.getArgument(2, String.class);
+		PowerMockito.when(ProcessSpawner.executeProcess(Mockito.any())).thenAnswer((i) -> {
+			obtainedProcessArgument[0] = i.getArgument(1, String.class);
 			return processMock;
 		});
 		final User user = new User();
