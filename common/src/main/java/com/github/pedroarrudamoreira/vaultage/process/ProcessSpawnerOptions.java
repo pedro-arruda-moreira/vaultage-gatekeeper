@@ -10,6 +10,7 @@ import java.util.function.IntFunction;
 @Builder
 public class ProcessSpawnerOptions {
 
+    @Getter
     final String[] command;
 
     IntFunction<Boolean> failureCodeHandler = (int ret) -> ret == 0;

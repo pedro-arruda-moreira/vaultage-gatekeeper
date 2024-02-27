@@ -1,5 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
+import lombok.SneakyThrows;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,7 +16,7 @@ public class ObjectFactory {
 	
 	public static final String PRESENT = "__present__";
 	
-	private ObjectFactory() {
+	public ObjectFactory() {
 		super();
 	}
 	
@@ -48,6 +50,23 @@ public class ObjectFactory {
 	
 	public static InputStream buildFileInputStream(File file) throws FileNotFoundException {
 		return new FileInputStream(file);
+	}
+
+	@SneakyThrows
+	public <T> T build(Class<T> clazz, Object ... args) {
+		if(args == null || args.length == 0) {
+			return clazz.getConstructor().newInstance();
+		}
+		return clazz.getConstructor(types(args)).newInstance(args);
+	}
+
+	private Class<?>[] types(Object[] args) {
+		Class<?>[] classes = new Class[args.length];
+		int i = 0;
+		for(Object o : args) {
+			classes[i++] = o.getClass();
+		}
+		return classes;
 	}
 
 }

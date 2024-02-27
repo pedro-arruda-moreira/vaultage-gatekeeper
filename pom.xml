@@ -18,6 +18,7 @@
 	</properties>
 
 	<modules>
+		<module>utils</module>
 		<module>test-util</module>
 		<module>common</module>
 		<module>build-tools</module>

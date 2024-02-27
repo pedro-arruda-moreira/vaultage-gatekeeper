@@ -18,6 +18,11 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>utils</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
 			<artifactId>gatekeeper-common</artifactId>
 			<version>1.0.0</version>
 		</dependency>

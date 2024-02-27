@@ -85,9 +85,9 @@ public class SessionControllerTest {
     @Before
     public void setup() throws Exception {
         setupStatic();
-        Mockito.doAnswer(new ArgumentCatcher<Void>(null, v -> hourSupplier = v.get(), 0)).when(
+        Mockito.doAnswer(new ArgumentCatcher<Void>(v -> hourSupplier = v.get(), 0)).when(
                 eventLoop).repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.eq(TimeUnit.HOURS));
-        Mockito.doAnswer(new ArgumentCatcher<Void>(null, v -> daySupplier = v.get(), 0)).when(
+        Mockito.doAnswer(new ArgumentCatcher<Void>(v -> daySupplier = v.get(), 0)).when(
                 eventLoop).repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.eq(TimeUnit.DAYS));
         impl = new SessionController(eventLoop);
         SessionController.setMaxLoginAttemptsPerSession(3);

@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.function.Supplier;
 
+import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawnerOptions;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import org.junit.Assert;
 import org.junit.Before;
@@ -67,6 +69,13 @@ public class ExecuteCommandProviderTest {
 		PowerMockito.when(ObjectFactory.buildFile(Mockito.eq(tempFolderMock), Mockito.anyString())).thenReturn(theFileMock);
 		PowerMockito.when(ObjectFactory.buildFileOutputStream(theFileMock)).thenReturn(outMock);
 		impl = new ExecuteCommandProvider(eventLoop);
+		Mockito.doAnswer((i) -> {
+			Supplier<Boolean> sup = i.getArgument(0, Supplier.class);
+			while (sup.get()) {
+				// wait...
+			}
+			return null;
+		}).when(eventLoop).repeatTask(Mockito.any(), Mockito.anyLong(), Mockito.any());
 	}
 	
 	@Test
@@ -74,21 +83,20 @@ public class ExecuteCommandProviderTest {
 	public void test_Executes() {
 		Mockito.when(processMock.isAlive()).thenReturn(true).thenReturn(false);
 		Mockito.when(theFileMock.getAbsolutePath()).thenReturn("path");
-		final String[] obtainedProcessArgument = new String[1];
-		PowerMockito.when(ProcessSpawner.executeProcess(Mockito.any())).thenAnswer((i) -> {
-			obtainedProcessArgument[0] = i.getArgument(1, String.class);
+		final ProcessSpawnerOptions[] obtainedProcessArgument = new ProcessSpawnerOptions[1];
+		Mockito.when(ProcessSpawner.executeProcess(Mockito.any())).thenAnswer((i) -> {
+			obtainedProcessArgument[0] = i.getArgument(0, ProcessSpawnerOptions.class);
 			return processMock;
 		});
 		final User user = new User();
 		user.setUserId("usr1");
 		impl.doBackup(user, databaseMock, Arrays.asList("test", "%s"));
-		Thread.sleep(2500);
 		Mockito.verify(theFileMock).delete();
 		Mockito.verify(tempFileMock).delete();
 		Mockito.verify(outMock).close();
 		PowerMockito.verifyStatic(IOUtils.class);
 		IOUtils.copy(databaseMock, outMock);
-		Assert.assertEquals("path", obtainedProcessArgument[0]);
+		Assert.assertEquals("test", obtainedProcessArgument[0].getCommand()[0]);
 	}
 
 }
