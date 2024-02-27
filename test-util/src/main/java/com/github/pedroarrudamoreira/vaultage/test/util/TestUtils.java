@@ -2,12 +2,14 @@ package com.github.pedroarrudamoreira.vaultage.test.util;
 
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import lombok.SneakyThrows;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
 import java.lang.reflect.Field;
+import java.util.function.BiFunction;
 
 public interface TestUtils {
 
@@ -53,21 +55,33 @@ public interface TestUtils {
         Class<?>[] argumentTypes = f.value();
         T o = (T) fld.get(this);
         if (argumentTypes == null || argumentTypes.length == 0) {
-            Mockito.when(objF.build(Mockito.eq(type), Mockito.any())).thenReturn(o);
+            Mockito.when(objF.build(Mockito.eq(type))).thenReturn(o);
         } else {
             Mockito.eq(type);
-            Mockito.argThat((arg) -> {
-                if (arg instanceof Object[]) {
-                    Object[] argVector = (Object[]) arg;
-                    for (int i = 0; i < argVector.length; i++) {
-                        if (!argumentTypes[i].isAssignableFrom(argVector[i].getClass())) {
-                            return false;
-                        }
-                    }
-                }
-                return argumentTypes[0].isAssignableFrom(arg.getClass());
-            });
-            Mockito.when(objF.build(null, (Object) null)).thenReturn(o);
+            final int size = argumentTypes.length;
+            final BiFunction<Object, Integer, Boolean> matcher
+                    = (arg, idx) -> argumentTypes[idx].isAssignableFrom(arg.getClass());
+            for (int i = 0; i < size; i++) {
+                final int index = i;
+                Mockito.argThat((arg) -> matcher.apply(arg, index));
+            }
+            switch (size) {
+                case 1:
+                    Mockito.when(objF.build(null, (Object) null)).thenReturn(o);
+                    break;
+                case 2:
+                    Mockito.when(objF.build(null, null, null)).thenReturn(o);
+                    break;
+                case 3:
+                    Mockito.when(objF.build(null, null, null, null)).thenReturn(o);
+                    break;
+                case 4:
+                    Mockito.when(objF.build(null, null, null, null, null)).thenReturn(o);
+                    break;
+                default:
+                    throw new RuntimeException("max 4");
+
+            }
         }
     }
 
