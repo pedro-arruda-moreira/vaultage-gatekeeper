@@ -20,10 +20,6 @@ public class ObjectFactory {
 		super();
 	}
 	
-	public static Properties buildProperties() {
-		return new Properties();
-	}
-	
 	public static AtomicInteger buildAtomicInteger(int value) {
 		return new AtomicInteger(value);
 	}

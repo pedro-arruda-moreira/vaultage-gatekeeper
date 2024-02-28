@@ -77,7 +77,7 @@ public class SessionControllerTest {
 
     @BeforeClass
     public static void setupStatic() throws Exception {
-        TestUtils.doPrepareForTest();
+        TestUtils.prepareMockStatic();
         PowerMockito.when(ObjectFactory.buildAtomicInteger(500)).thenReturn(remainingPerHour);
         PowerMockito.when(ObjectFactory.buildAtomicInteger(900)).thenReturn(remainingPerDay);
     }

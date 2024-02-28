@@ -17,6 +17,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
@@ -58,6 +59,8 @@ public class EmailService implements InitializingBean {
 	private boolean enabled;
 	@Setter
 	private EventLoop eventLoop;
+	@Setter @Autowired
+	private ObjectFactory objectFactory;
 	
 	private Properties emailProperties;
 	
@@ -73,7 +76,7 @@ public class EmailService implements InitializingBean {
 
 	
 	public void sendEmail(final String addressToSend, final String subject, String emailContent, DataSource attachment)
-			throws MessagingException, AddressException {
+			throws MessagingException {
 		Message message = RootObjectFactory.buildMimeMessage(configureSession());
 		message.setFrom();
 
@@ -110,7 +113,7 @@ public class EmailService implements InitializingBean {
 			Assert.notNull(smtpPort, "smtpPort required.");
 			Assert.notNull(smtpUsername, "smtpUsername required.");
 			Assert.notNull(thisServerHost, "thisServerHost required.");
-			Properties props = ObjectFactory.buildProperties();
+			Properties props = objectFactory.build(Properties.class);
 			props.setProperty(SMTP_HOST_KEY, smtpHost);
 			props.setProperty(SMTP_PORT_KEY, smtpPort);
 			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);

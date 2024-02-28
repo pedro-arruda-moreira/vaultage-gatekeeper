@@ -82,12 +82,12 @@ public class TwoFactorAuthFilterTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before
 	public void setup() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 		impl = new TwoFactorAuthFilter();
 		impl.setEnabled(true);
 		impl.setServletContext(servletContextMock);

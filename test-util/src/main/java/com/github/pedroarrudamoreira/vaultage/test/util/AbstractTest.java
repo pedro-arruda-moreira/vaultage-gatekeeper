@@ -4,6 +4,7 @@ import org.junit.Before;
 
 public abstract class AbstractTest implements TestUtils {
 
+
     @Before
     public void prepare() {
         doPrepareForTest();

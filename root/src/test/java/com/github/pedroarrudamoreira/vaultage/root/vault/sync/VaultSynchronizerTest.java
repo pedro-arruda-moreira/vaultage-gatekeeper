@@ -31,7 +31,7 @@ public class VaultSynchronizerTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before

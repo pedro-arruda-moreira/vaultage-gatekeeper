@@ -53,7 +53,7 @@ public class AuthenticationProviderTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before

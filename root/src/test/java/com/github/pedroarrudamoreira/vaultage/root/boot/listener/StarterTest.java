@@ -52,7 +52,7 @@ public class StarterTest {
 
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 
 	@Before

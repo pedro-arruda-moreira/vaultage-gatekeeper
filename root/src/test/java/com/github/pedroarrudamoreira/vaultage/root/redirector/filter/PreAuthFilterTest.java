@@ -45,7 +45,7 @@ public class PreAuthFilterTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before

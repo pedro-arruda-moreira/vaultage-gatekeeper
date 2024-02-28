@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface FactoryArgumentTypes {
-    Class<?>[] value() default {};
+public @interface ObjectFactoryInject {
+    Class<?>[] types() default {};
+
+    String[] values() default {};
 }

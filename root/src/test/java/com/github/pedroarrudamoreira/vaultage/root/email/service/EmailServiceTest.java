@@ -16,6 +16,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryInject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,9 +35,9 @@ import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, Session.class, Transport.class,
+@PrepareForTest({Session.class, Transport.class,
 	RootObjectFactory.class, EventLoop.class})
-public class EmailServiceTest {
+public class EmailServiceTest implements TestUtils {
 	private static final String FAKE_EMAIL_CONTENT = "hello!";
 	private static final String FAKE_SUBJECT = "Greetings";
 	private static final String STRING_FALSE = "false";
@@ -51,6 +52,7 @@ public class EmailServiceTest {
 	
 	private Authenticator obtainedAuthenticator;
 
+	@ObjectFactoryInject
 	private Properties properties;
 	
 	@Mock
@@ -70,26 +72,29 @@ public class EmailServiceTest {
 
 	@Mock
 	private EventLoop eventLoop;
+
+	@Mock
+	private ObjectFactory objectFactory;
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before
 	public void setup() {
-		setupStatic();
 		properties = new Properties();
+		doPrepareForTest();
 		PowerMockito.when(RootObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
-		PowerMockito.when(ObjectFactory.buildProperties()).thenReturn(properties);
 		PowerMockito.when(RootObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
 						v -> obtainedAuthenticator = v.get(), 1));
 		Mockito.doAnswer((i) -> {
-			i.getArgument(0, Runnable.class).run();
+			i.getArgument(0, EventLoop.Task.class).run();
 			return null;
 		}).when(eventLoop).execute(Mockito.any());
 		impl = new EmailService();
+		impl.setObjectFactory(objectFactory);
 		impl.setEventLoop(eventLoop);
 		impl.setSslContextFactory(mockSslFactory);
 		impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);
@@ -99,8 +104,7 @@ public class EmailServiceTest {
 	@Test
 	public void testAfterPropertiesSet_NotEnabled() throws Exception {
 		impl.afterPropertiesSet();
-		PowerMockito.verifyStatic(ObjectFactory.class, Mockito.never());
-		ObjectFactory.buildProperties();
+		Mockito.verify(objectFactory, Mockito.never()).build(Properties.class);
 		Assert.assertEquals(0, properties.size());
 	}
 	

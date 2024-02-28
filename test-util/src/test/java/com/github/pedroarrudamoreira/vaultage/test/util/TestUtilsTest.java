@@ -12,24 +12,36 @@ import java.io.File;
 @RunWith(MockitoJUnitRunner.class)
 public class TestUtilsTest extends AbstractTest {
 
+    public final String blaValue = "  bla ";
+
     @Mock
     private ObjectFactory factory;
 
     @Mock
-    @FactoryArgumentTypes({String.class})
+    @ObjectFactoryInject(types = {String.class})
     private File file;
 
     @Mock
-    @FactoryArgumentTypes
+    @ObjectFactoryInject
     private File file2;
 
     @Mock
-    @FactoryArgumentTypes({String.class, String.class})
+    @ObjectFactoryInject(
+            types = {String.class, String.class},
+            values = {"something", "something"}
+    )
     private File file3;
 
     @Mock
-    @FactoryArgumentTypes({String.class, Class.class})
+    @ObjectFactoryInject(types = {String.class, Class.class})
     private File file4;
+
+    @Mock
+    @ObjectFactoryInject(
+            types = {String.class, String.class},
+            values = {"#{blaValue.trim()}", "something"}
+    )
+    private File file5;
 
 
     @Test
@@ -43,5 +55,7 @@ public class TestUtilsTest extends AbstractTest {
         Assert.assertEquals(file3, obtained3);
         File obtained4 = factory.build(File.class, "something", this.getClass());
         Assert.assertEquals(file4, obtained4);
+        File obtained5 = factory.build(File.class, blaValue.trim(), "something");
+        Assert.assertEquals(file5, obtained5);
     }
 }

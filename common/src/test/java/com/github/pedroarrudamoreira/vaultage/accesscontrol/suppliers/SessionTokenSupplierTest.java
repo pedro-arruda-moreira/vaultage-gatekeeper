@@ -43,7 +43,7 @@ public class SessionTokenSupplierTest {
 
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before

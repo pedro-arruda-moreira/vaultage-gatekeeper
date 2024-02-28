@@ -70,7 +70,7 @@ public class OnlineCryptoServletTest {
 
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		TestUtils.prepareMockStatic();
 	}
 	
 	@Before
