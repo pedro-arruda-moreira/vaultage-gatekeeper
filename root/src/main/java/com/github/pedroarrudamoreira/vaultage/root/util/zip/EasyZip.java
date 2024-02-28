@@ -30,8 +30,11 @@ public class EasyZip {
 	private final char[] password;
 	
 	private final EasyZip delegate;
+
+	private final ObjectFactory objectFactory;
 	@SneakyThrows
-	public EasyZip(File folderLocation, char[] password, boolean hideContents) {
+	public EasyZip(File folderLocation, char[] password, boolean hideContents, ObjectFactory objectFactory) {
+		this.objectFactory = objectFactory;
 		this.password = password;
 		if(this.password == null || !hideContents) {
 			this.folderLocation = folderLocation;
@@ -39,7 +42,7 @@ public class EasyZip {
 		} else {
 			File tempFile = File.createTempFile("data_", ".zip");
 			this.folderLocation = tempFile;
-			delegate = new EasyZip(folderLocation, null, false);
+			delegate = new EasyZip(folderLocation, null, false, objectFactory);
 		}
 		this.folderPath = this.folderLocation.getAbsolutePath();
 		if(this.password == null || !hideContents) {
@@ -49,7 +52,7 @@ public class EasyZip {
 
 	public Void zipIt(OutputStream out) throws IOException {
 		if(this.delegate != null) {
-			@Cleanup OutputStream tempFileOut = ObjectFactory.buildFileOutputStream(this.folderLocation);
+			@Cleanup OutputStream tempFileOut = objectFactory.buildFileOutputStream(this.folderLocation);
 			delegate.zipIt(tempFileOut);
 			this.generateFileList(this.folderLocation);
 		}
@@ -68,7 +71,7 @@ public class EasyZip {
 						initializeParameters(zp, file, source);
 						target = ObjectFactory.buildFile(folderLocation, file);
 					}
-					in = ObjectFactory.buildFileInputStream(target);
+					in = objectFactory.buildFileInputStream(target);
 					zos.putNextEntry(zp);
 					IOUtils.copy(in, zos);
 				} finally {

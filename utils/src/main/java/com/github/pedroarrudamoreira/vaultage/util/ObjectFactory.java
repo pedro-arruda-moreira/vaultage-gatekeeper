@@ -39,13 +39,15 @@ public class ObjectFactory {
 	public static String normalizePath(String path) {
 		return buildFile(path).getAbsolutePath();
 	}
-	
-	public static OutputStream buildFileOutputStream(File file) throws FileNotFoundException {
-		return new FileOutputStream(file);
+
+	@Deprecated
+	public OutputStream buildFileOutputStream(File file) throws FileNotFoundException {
+		return build(FileOutputStream.class, file);
 	}
-	
-	public static InputStream buildFileInputStream(File file) throws FileNotFoundException {
-		return new FileInputStream(file);
+
+	@Deprecated
+	public InputStream buildFileInputStream(File file) throws FileNotFoundException {
+		return build(FileInputStream.class, file);
 	}
 
 	@SneakyThrows
