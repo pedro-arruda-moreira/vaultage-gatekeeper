@@ -45,11 +45,6 @@ public class ObjectFactory {
 		return build(FileOutputStream.class, file);
 	}
 
-	@Deprecated
-	public InputStream buildFileInputStream(File file) throws FileNotFoundException {
-		return build(FileInputStream.class, file);
-	}
-
 	@SneakyThrows
 	public <T> T build(Class<T> clazz, Object ... args) {
 		if(args == null || args.length == 0) {

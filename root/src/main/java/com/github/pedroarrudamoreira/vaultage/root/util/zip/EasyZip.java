@@ -1,9 +1,6 @@
 package com.github.pedroarrudamoreira.vaultage.root.util.zip;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,7 +68,7 @@ public class EasyZip {
 						initializeParameters(zp, file, source);
 						target = ObjectFactory.buildFile(folderLocation, file);
 					}
-					in = objectFactory.buildFileInputStream(target);
+					in = objectFactory.build(FileInputStream.class, target);
 					zos.putNextEntry(zp);
 					IOUtils.copy(in, zos);
 				} finally {
