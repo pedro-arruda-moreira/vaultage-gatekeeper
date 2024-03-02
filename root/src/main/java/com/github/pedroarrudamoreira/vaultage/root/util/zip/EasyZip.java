@@ -1,6 +1,9 @@
 package com.github.pedroarrudamoreira.vaultage.root.util.zip;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,11 +30,8 @@ public class EasyZip {
 	private final char[] password;
 	
 	private final EasyZip delegate;
-
-	private final ObjectFactory objectFactory;
 	@SneakyThrows
-	public EasyZip(File folderLocation, char[] password, boolean hideContents, ObjectFactory objectFactory) {
-		this.objectFactory = objectFactory;
+	public EasyZip(File folderLocation, char[] password, boolean hideContents) {
 		this.password = password;
 		if(this.password == null || !hideContents) {
 			this.folderLocation = folderLocation;
@@ -39,7 +39,7 @@ public class EasyZip {
 		} else {
 			File tempFile = File.createTempFile("data_", ".zip");
 			this.folderLocation = tempFile;
-			delegate = new EasyZip(folderLocation, null, false, objectFactory);
+			delegate = new EasyZip(folderLocation, null, false);
 		}
 		this.folderPath = this.folderLocation.getAbsolutePath();
 		if(this.password == null || !hideContents) {
@@ -49,7 +49,7 @@ public class EasyZip {
 
 	public Void zipIt(OutputStream out) throws IOException {
 		if(this.delegate != null) {
-			@Cleanup OutputStream tempFileOut = objectFactory.buildFileOutputStream(this.folderLocation);
+			@Cleanup OutputStream tempFileOut = ObjectFactory.buildFileOutputStream(this.folderLocation);
 			delegate.zipIt(tempFileOut);
 			this.generateFileList(this.folderLocation);
 		}
@@ -68,7 +68,7 @@ public class EasyZip {
 						initializeParameters(zp, file, source);
 						target = ObjectFactory.buildFile(folderLocation, file);
 					}
-					in = objectFactory.build(FileInputStream.class, target);
+					in = ObjectFactory.buildFileInputStream(target);
 					zos.putNextEntry(zp);
 					IOUtils.copy(in, zos);
 				} finally {
