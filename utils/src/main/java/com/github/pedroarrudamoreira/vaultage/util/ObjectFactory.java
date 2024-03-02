@@ -79,6 +79,10 @@ public class ObjectFactory {
 		return clazz.getConstructor(types(args)).newInstance(args);
 	}
 
+	public static <T> T fromSupplier(Class<? extends Function<Object[], T>> clazz, Object ... args) {
+		return getFactory().doFromSupplier(clazz, args);
+	}
+
 	public <T> T doFromSupplier(Class<? extends Function<Object[], T>> clazz, Object ... args) {
 		return (T) functionCache.computeIfAbsent(clazz, c -> (Function) doBuild(c)).apply(args);
 	}

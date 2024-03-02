@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,11 +36,14 @@ public class TokenService implements UserDetailsService {
 	private String offlineEnabled;
 	@Setter
 	private TokenManager tokenManager;
+	@Setter
+	@Autowired
+	private SessionController sessionController;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String userPassword;
-		final HttpServletRequest currentRequest = SessionController.getCurrentRequest();
+		final HttpServletRequest currentRequest = sessionController.getCurrentRequest();
 		currentRequest.setAttribute(AUTO_CREATE, autoCreate);
 		currentRequest.setAttribute(CONFIG_CACHE, configCache);
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);

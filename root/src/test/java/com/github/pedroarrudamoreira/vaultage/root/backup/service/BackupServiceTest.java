@@ -28,7 +28,7 @@ import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer.
 import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class, RootObjectFactory.class})
+@PrepareForTest({SessionController.class})
 public class BackupServiceTest {
 	
 	private static final String FAKE_DATA_DIR = "/data-dir";

@@ -1,13 +1,10 @@
 package com.github.pedroarrudamoreira.vaultage.pwa.security.crypto.servlet;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.github.pedroarrudamoreira.vaultage.pwa.util.ReaderForSupplier;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactorySupplier;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Assert;
@@ -22,16 +19,20 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.http.HttpStatus;
 
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.github.pedroarrudamoreira.vaultage.pwa.util.PWAObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
-	PWAObjectFactory.class,
 	LogFactory.class
 })
-public class OnlineCryptoServletTest {
+public class OnlineCryptoServletTest extends AbstractTest {
+
+	public final Class<?> cryptoDataClass = CryptoData.class;
 	
 	private static final String GENERATED_KEY = "KEY123";
 
@@ -40,8 +41,15 @@ public class OnlineCryptoServletTest {
 	private static final String CORRECT_PIN = "1234";
 
 	private static final int ATTEMPTS = 3;
+
+	@Mock
+	private ObjectFactory objectFactory;
 	
 	@Mock
+	@ObjectFactorySupplier(
+			clazz = ReaderForSupplier.class,
+			args = {"#{cryptoDataClass}"}
+	)
 	private ObjectReader readerMock;
 	
 	@Mock
@@ -78,7 +86,6 @@ public class OnlineCryptoServletTest {
 		setupStatic();
 		cryptoData = null;
 		providedPin = null;
-		PowerMockito.when(PWAObjectFactory.readerFor(CryptoData.class)).thenReturn(readerMock);
 		PowerMockito.when(LogFactory.getLog(OnlineCryptoServlet.class)).thenReturn(logMock);
 		Mockito.when(readerMock.readValue(Mockito.any(BufferedReader.class))).thenAnswer((i) -> cryptoData);
 		Mockito.when(sessMock.getAttribute(OnlineCryptoServlet.CRYPTO_KEY)).thenAnswer((i) -> cryptoData);
