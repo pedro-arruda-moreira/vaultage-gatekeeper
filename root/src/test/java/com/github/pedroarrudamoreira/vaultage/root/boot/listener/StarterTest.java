@@ -22,7 +22,7 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 
 @RunWith(PowerMockRunner.class)
@@ -52,7 +52,7 @@ public class StarterTest {
 
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 
 	@Before

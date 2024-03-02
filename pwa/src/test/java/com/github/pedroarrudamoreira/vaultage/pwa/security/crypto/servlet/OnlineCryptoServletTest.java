@@ -24,7 +24,7 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.pedroarrudamoreira.vaultage.pwa.util.PWAObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -70,7 +70,7 @@ public class OnlineCryptoServletTest {
 
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before

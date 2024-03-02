@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -26,7 +25,7 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -82,12 +81,12 @@ public class TwoFactorAuthFilterTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before
 	public void setup() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 		impl = new TwoFactorAuthFilter();
 		impl.setEnabled(true);
 		impl.setServletContext(servletContextMock);

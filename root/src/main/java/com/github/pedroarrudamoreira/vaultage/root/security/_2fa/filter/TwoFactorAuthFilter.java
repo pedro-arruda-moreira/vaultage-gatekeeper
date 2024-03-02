@@ -49,10 +49,8 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 
 	private ServletContext servletContext;
 
-	@Setter
 	private TokenManager tokenManager;
 
-	@Setter
 	private EventLoop eventLoop;
 
 

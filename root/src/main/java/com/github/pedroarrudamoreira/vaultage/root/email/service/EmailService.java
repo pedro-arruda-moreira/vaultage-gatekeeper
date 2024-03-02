@@ -11,7 +11,6 @@ import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
@@ -113,7 +112,7 @@ public class EmailService implements InitializingBean {
 			Assert.notNull(smtpPort, "smtpPort required.");
 			Assert.notNull(smtpUsername, "smtpUsername required.");
 			Assert.notNull(thisServerHost, "thisServerHost required.");
-			Properties props = objectFactory.build(Properties.class);
+			Properties props = objectFactory.doBuild(Properties.class);
 			props.setProperty(SMTP_HOST_KEY, smtpHost);
 			props.setProperty(SMTP_PORT_KEY, smtpPort);
 			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);

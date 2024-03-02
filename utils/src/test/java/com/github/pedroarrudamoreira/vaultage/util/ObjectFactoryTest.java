@@ -8,7 +8,7 @@ import java.io.File;
 public class ObjectFactoryTest {
     @Test
     public void mustInstantiateObject() {
-        File f = new ObjectFactory().build(File.class, "/home");
+        File f = new ObjectFactory().doBuild(File.class, "/home");
         Assert.assertNotNull(f);
     }
 }

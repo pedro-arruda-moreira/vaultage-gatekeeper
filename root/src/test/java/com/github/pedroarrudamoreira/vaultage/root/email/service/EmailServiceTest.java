@@ -30,14 +30,14 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Session.class, Transport.class,
 	RootObjectFactory.class, EventLoop.class})
-public class EmailServiceTest implements TestUtils {
+public class EmailServiceTest extends AbstractTest {
 	private static final String FAKE_EMAIL_CONTENT = "hello!";
 	private static final String FAKE_SUBJECT = "Greetings";
 	private static final String STRING_FALSE = "false";
@@ -78,13 +78,12 @@ public class EmailServiceTest implements TestUtils {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before
 	public void setup() {
 		properties = new Properties();
-		doPrepareForTest();
 		PowerMockito.when(RootObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
 		PowerMockito.when(RootObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
 				new ArgumentCatcher<Session>(emailSessionMock,
@@ -104,7 +103,7 @@ public class EmailServiceTest implements TestUtils {
 	@Test
 	public void testAfterPropertiesSet_NotEnabled() throws Exception {
 		impl.afterPropertiesSet();
-		Mockito.verify(objectFactory, Mockito.never()).build(Properties.class);
+		Mockito.verify(objectFactory, Mockito.never()).doBuild(Properties.class);
 		Assert.assertEquals(0, properties.size());
 	}
 	

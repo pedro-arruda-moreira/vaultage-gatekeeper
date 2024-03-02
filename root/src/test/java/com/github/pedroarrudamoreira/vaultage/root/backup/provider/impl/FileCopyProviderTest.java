@@ -22,7 +22,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -50,7 +50,7 @@ public class FileCopyProviderTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before

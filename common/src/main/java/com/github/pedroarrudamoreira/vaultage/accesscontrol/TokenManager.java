@@ -10,7 +10,7 @@ import com.github.pedroarrudamoreira.vaultage.accesscontrol.suppliers.SessionTok
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public final class TokenManager {
+public class TokenManager {
 	
 	private final Map<TokenType, ITokenSupplier> suppliers;
 	

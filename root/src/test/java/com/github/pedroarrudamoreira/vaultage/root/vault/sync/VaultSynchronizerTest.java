@@ -15,7 +15,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RootObjectFactory.class})
 public class VaultSynchronizerTest {
@@ -31,7 +31,7 @@ public class VaultSynchronizerTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before

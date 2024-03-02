@@ -25,7 +25,7 @@ import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
 import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
 import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer.ExceptionRunnable;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ObjectFactory.class, RootObjectFactory.class})
@@ -70,7 +70,7 @@ public class BackupServiceTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.prepareMockStatic();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before

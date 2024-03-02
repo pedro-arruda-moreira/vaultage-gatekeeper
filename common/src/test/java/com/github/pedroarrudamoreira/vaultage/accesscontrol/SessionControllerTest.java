@@ -1,8 +1,21 @@
 package com.github.pedroarrudamoreira.vaultage.accesscontrol;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactorySupplier;
+import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
+import com.github.pedroarrudamoreira.vaultage.util.AtomicIntegerSupplier;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import org.junit.*;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.junit.runners.MethodSorters;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.cglib.proxy.UndeclaredThrowableException;
+import org.springframework.security.core.context.SecurityContext;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
@@ -12,34 +25,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
-import org.springframework.cglib.proxy.UndeclaredThrowableException;
-import org.springframework.security.core.context.SecurityContext;
-
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
-import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
-import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 @RunWith(PowerMockRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@PrepareForTest({ObjectFactory.class})
 @PowerMockRunnerDelegate(JUnit4.class)
-public class SessionControllerTest {
+public class SessionControllerTest extends AbstractTest {
 
     @Mock
     private EventLoop eventLoop;
@@ -65,26 +58,29 @@ public class SessionControllerTest {
     @Mock
     private FilterChain filterChainMock;
 
+    @Mock
+    private ObjectFactory objectFactory;
+
     private SessionController impl;
 
+    @ObjectFactorySupplier(
+            clazz = AtomicIntegerSupplier.class,
+            args = {"#{500}"}
+    )
     private static AtomicInteger remainingPerHour = new AtomicInteger(10);
 
+    @ObjectFactorySupplier(
+            clazz = AtomicIntegerSupplier.class,
+            args = {"#{900}"}
+    )
     private static AtomicInteger remainingPerDay = new AtomicInteger(10);
 
     private static Supplier<Boolean> hourSupplier;
 
     private static Supplier<Boolean> daySupplier;
 
-    @BeforeClass
-    public static void setupStatic() throws Exception {
-        TestUtils.prepareMockStatic();
-        PowerMockito.when(ObjectFactory.buildAtomicInteger(500)).thenReturn(remainingPerHour);
-        PowerMockito.when(ObjectFactory.buildAtomicInteger(900)).thenReturn(remainingPerDay);
-    }
-
     @Before
     public void setup() throws Exception {
-        setupStatic();
         Mockito.doAnswer(new ArgumentCatcher<Void>(v -> hourSupplier = v.get(), 0)).when(
                 eventLoop).repeatTask(Mockito.any(), Mockito.eq(1l), Mockito.eq(TimeUnit.HOURS));
         Mockito.doAnswer(new ArgumentCatcher<Void>(v -> daySupplier = v.get(), 0)).when(
