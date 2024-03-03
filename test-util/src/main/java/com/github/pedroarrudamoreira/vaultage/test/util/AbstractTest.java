@@ -185,17 +185,19 @@ public abstract class AbstractTest {
 
     private static <T> void configureBuilderInMockito(AbstractTest test, ObjectFactory objF, Field fld, ObjectFactoryBuilder f, Class<T> type) throws IllegalAccessException {
         Answer<Object> answer = i -> fld.get(test);
-        Class<?>[] argumentTypes = f.types();
+        final Class<?>[] argumentTypes = f.types();
+        final String[] values = f.values();
         Mockito.eq(type);
-        if (argumentTypes == null || argumentTypes.length == 0) {
+        if ((argumentTypes == null || argumentTypes.length == 0) && (values == null || values.length == 0)) {
             Mockito.when(objF.doBuild(null)).thenAnswer(answer);
             return;
         }
-        String[] values = f.values();
         final BiFunction<Object, Integer, Boolean> matcher = (arg, idx) -> {
-            boolean isCompatibleType = argumentTypes[idx].isAssignableFrom(arg.getClass());
-            if (!isCompatibleType) {
-                return false;
+            if(argumentTypes.length > idx) {
+                boolean isCompatibleType = argumentTypes[idx].isInstance(arg);
+                if (!isCompatibleType) {
+                    return false;
+                }
             }
             if (values.length > idx) {
                 Object expected = parseExpression(test, values[idx]);
@@ -203,7 +205,7 @@ public abstract class AbstractTest {
             }
             return true;
         };
-        final int size = argumentTypes.length;
+        final int size = Math.max(argumentTypes.length, values.length);
         for (int i = 0; i < size; i++) {
             final int index = i;
             Mockito.argThat((arg) -> matcher.apply(arg, index));
