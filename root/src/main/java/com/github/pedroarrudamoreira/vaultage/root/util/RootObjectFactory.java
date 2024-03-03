@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Deprecated
 public class RootObjectFactory {
 	private RootObjectFactory() {
 		super();

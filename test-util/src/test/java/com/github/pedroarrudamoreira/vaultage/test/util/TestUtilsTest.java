@@ -21,26 +21,26 @@ public class TestUtilsTest extends AbstractTest {
     private ObjectFactory factory;
 
     @Mock
-    @ObjectFactoryInject(types = {String.class})
+    @ObjectFactoryBuilder(types = {String.class})
     private File file;
 
     @Mock
-    @ObjectFactoryInject
+    @ObjectFactoryBuilder
     private File file2;
 
     @Mock
-    @ObjectFactoryInject(
+    @ObjectFactoryBuilder(
             types = {String.class, String.class},
             values = {"something", "something"}
     )
     private File file3;
 
     @Mock
-    @ObjectFactoryInject(types = {String.class, Class.class})
+    @ObjectFactoryBuilder(types = {String.class, Class.class})
     private File file4;
 
     @Mock
-    @ObjectFactoryInject(
+    @ObjectFactoryBuilder(
             types = {String.class, String.class},
             values = {"#{blaValue.trim()}", "something"}
     )

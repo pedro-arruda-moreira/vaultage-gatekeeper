@@ -16,7 +16,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryInject;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -52,7 +52,7 @@ public class EmailServiceTest extends AbstractTest {
 	
 	private Authenticator obtainedAuthenticator;
 
-	@ObjectFactoryInject
+	@ObjectFactoryBuilder
 	private Properties properties;
 	
 	@Mock

@@ -3,11 +3,15 @@ package com.github.pedroarrudamoreira.vaultage.test.util;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import lombok.SneakyThrows;
 import org.junit.Before;
+import org.junit.runner.RunWith;
+import org.junit.runner.Runner;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.expression.Expression;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
@@ -21,8 +25,25 @@ public abstract class AbstractTest {
     @SneakyThrows
     @Before
     public void prepare() {
+        prepareMocks(this);
         prepareMockStatic();
         configureFactory(this);
+    }
+
+    public static void prepareMocks(AbstractTest test) {
+        RunWith runWith = test.getClass().getAnnotation(RunWith.class);
+        if(runWith == null) {
+            MockitoAnnotations.initMocks(test);
+            return;
+        }
+        Class<? extends Runner> runner = runWith.value();
+        if(runner.getPackage().toString().contains("org.mockito")) {
+            return;
+        }
+        if(runner == PowerMockRunner.class) {
+            return;
+        }
+        MockitoAnnotations.initMocks(test);
     }
 
     public static void configureFactory(AbstractTest test) throws IllegalAccessException {
@@ -45,10 +66,10 @@ public abstract class AbstractTest {
         ObjectFactory.setFactory(objF);
         for (Field fld : allFields) {
             fld.setAccessible(true);
-            if (fld.getAnnotation(ObjectFactoryInject.class) == null) {
+            if (fld.getAnnotation(ObjectFactoryBuilder.class) == null) {
                 continue;
             }
-            ObjectFactoryInject f = fld.getAnnotation(ObjectFactoryInject.class);
+            ObjectFactoryBuilder f = fld.getAnnotation(ObjectFactoryBuilder.class);
             Class<?> type = fld.getType();
             configureBuilderInMockito(test, objF, fld, f, type);
         }
@@ -75,7 +96,7 @@ public abstract class AbstractTest {
         Answer<Object> answer = i -> fld.get(test);
         Mockito.eq(f.clazz());
         if (f.args() == null || f.args().length == 0) {
-            Mockito.when(objF.doFromSupplier(null, null)).thenAnswer(answer);
+            Mockito.when(objF.doFromSupplier(null)).thenAnswer(answer);
             return;
         }
         String[] args = f.args();
@@ -162,7 +183,7 @@ public abstract class AbstractTest {
         return trimExp;
     }
 
-    private static <T> void configureBuilderInMockito(AbstractTest test, ObjectFactory objF, Field fld, ObjectFactoryInject f, Class<T> type) throws IllegalAccessException {
+    private static <T> void configureBuilderInMockito(AbstractTest test, ObjectFactory objF, Field fld, ObjectFactoryBuilder f, Class<T> type) throws IllegalAccessException {
         Answer<Object> answer = i -> fld.get(test);
         Class<?>[] argumentTypes = f.types();
         Mockito.eq(type);

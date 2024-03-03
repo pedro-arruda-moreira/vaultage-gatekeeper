@@ -1,10 +1,18 @@
 package com.github.pedroarrudamoreira.vaultage.root.backup.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.Collections;
-
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
+import com.github.pedroarrudamoreira.vaultage.root.backup.provider.BackupProvider;
+import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
+import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
+import com.github.pedroarrudamoreira.vaultage.root.util.EasyZipSupplier;
+import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer.ExceptionRunnable;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryBuilder;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactorySupplier;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,19 +25,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.JobExecutionException;
 import org.springframework.context.ApplicationContext;
 
-import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
-import com.github.pedroarrudamoreira.vaultage.root.backup.provider.BackupProvider;
-import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
-import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
-import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
-import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer.ExceptionRunnable;
-import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.util.Collections;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SessionController.class})
-public class BackupServiceTest {
+public class BackupServiceTest extends AbstractTest {
 	
 	private static final String FAKE_DATA_DIR = "/data-dir";
 
@@ -39,7 +41,7 @@ public class BackupServiceTest {
 
 	private static final String FAKE_HOST = "this.server.com";
 	
-	private static final byte[] FAKE_BYTE_CONTENT = "hello".getBytes();
+	public static final byte[] FAKE_BYTE_CONTENT = "hello".getBytes();
 
 	@Mock
 	private ApplicationContext mockApplicationContext;
@@ -54,16 +56,36 @@ public class BackupServiceTest {
 	private BackupProvider mockBackupProvider;
 	
 	@Mock
-	private File mockFile;
+	@ObjectFactoryBuilder(types = {String.class})
+	public File mockFile;
 	
 	@Mock
+	@ObjectFactorySupplier(
+			clazz = EasyZipSupplier.class,
+			args = {
+					"#{mockFile}",
+					FAKE_HOST,
+					"#{false}"
+			}
+	)
 	private EasyZip easyZipMock;
 	
 	@Mock
+	@ObjectFactoryBuilder
 	private ByteArrayOutputStream mockByteArrayOutputStream;
 	
 	@Mock
+	@ObjectFactoryBuilder(
+			types = byte[].class,
+			values = "#{FAKE_BYTE_CONTENT}"
+	)
 	private ByteArrayInputStream mockByteArrayInputStream;
+
+	@Mock
+	private ObjectFactory objectFactory;
+
+	@Mock
+	private EventLoop eventLoop;
 	
 	private BackupService backupService;
 
@@ -82,11 +104,12 @@ public class BackupServiceTest {
 		backupService.setAuthProvider(mockAuthProvider);
 		backupService.setVaultSynchronizer(vaultSynchronizer);
 		backupService.setProviders(Collections.singletonMap(FAKE_BACKUP_PROVIDER, mockBackupProvider));
+		backupService.setEventLoop(eventLoop);
 		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(mockApplicationContext);
-		PowerMockito.when(ObjectFactory.buildFile(FAKE_DATA_DIR)).thenReturn(mockFile);
-		PowerMockito.when(RootObjectFactory.buildByteArrayOutputStream()).thenReturn(mockByteArrayOutputStream);
-		PowerMockito.when(RootObjectFactory.buildByteArrayInputStream(FAKE_BYTE_CONTENT)).thenReturn(
-				mockByteArrayInputStream);
+		Mockito.when(eventLoop.schedule(Mockito.any(), Mockito.anyLong(), Mockito.any())).thenAnswer(i -> {
+			i.getArgument(0, EventLoop.Task.class).run();
+			return null;
+		});
 		Mockito.when(mockByteArrayOutputStream.toByteArray()).thenReturn(FAKE_BYTE_CONTENT);
 		Mockito.when(mockApplicationContext.getBean(BackupService.class)).thenReturn(backupService);
 		Mockito.when(vaultSynchronizer.runSync(
@@ -115,8 +138,7 @@ public class BackupServiceTest {
 		user.setBackupConfig(Collections.singletonMap("not-valid-provider", new Object()));
 		Mockito.when(mockAuthProvider.getUsers()).thenReturn(Collections.singletonMap(FAKE_USER_ID, user));
 		backupService.execute(null);
-		PowerMockito.verifyStatic(ObjectFactory.class, Mockito.never());
-		ObjectFactory.buildFile(Mockito.any());
+		Mockito.verify(objectFactory, Mockito.never()).doBuild(Mockito.eq(File.class), Mockito.any());
 	}
 	
 	@Test
@@ -128,8 +150,7 @@ public class BackupServiceTest {
 		Mockito.when(mockAuthProvider.getUsers()).thenReturn(Collections.singletonMap(FAKE_USER_ID, user));
 		Mockito.when(mockFile.exists()).thenReturn(false);
 		backupService.execute(null);
-		PowerMockito.verifyStatic(RootObjectFactory.class, Mockito.never());
-		RootObjectFactory.buildEasyZip(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+		Mockito.verify(objectFactory, Mockito.never()).doBuild(Mockito.eq(EasyZip.class), Mockito.any(), Mockito.any(), Mockito.anyBoolean());
 	}
 	
 	@Test
@@ -140,11 +161,11 @@ public class BackupServiceTest {
 		user.setBackupConfig(Collections.singletonMap(FAKE_BACKUP_PROVIDER, providerArg));
 		Mockito.when(mockAuthProvider.getUsers()).thenReturn(Collections.singletonMap(FAKE_USER_ID, user));
 		Mockito.when(mockFile.exists()).thenReturn(true);
-		PowerMockito.when(RootObjectFactory.buildEasyZip(mockFile, FAKE_HOST, false)).thenReturn(easyZipMock);
+		Mockito.when(objectFactory.doBuild(EasyZip.class, mockFile, FAKE_HOST, false)).thenReturn(easyZipMock);
 		backupService.setDoEncrypt(true);
 		backupService.execute(null);
 		// let event loop do its things...
-		Thread.sleep(2000l);
+//		Thread.sleep(2000l);
 		Mockito.verify(easyZipMock).zipIt(mockByteArrayOutputStream);
 		Mockito.verify(mockBackupProvider).doBackup(user, mockByteArrayInputStream, providerArg);
 	}

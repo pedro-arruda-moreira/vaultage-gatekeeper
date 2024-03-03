@@ -1,43 +1,33 @@
 package com.github.pedroarrudamoreira.vaultage.root.vault.sync;
 
-import java.util.Map;
-
+import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryBuilder;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({RootObjectFactory.class})
-public class VaultSynchronizerTest {
+import java.util.concurrent.ConcurrentHashMap;
+public class VaultSynchronizerTest extends AbstractTest {
 	@Mock
 	private AuthenticationProvider authProviderMock;
 
 	@Mock
-	private Map<String, Object> lockMapMock;
+	@ObjectFactoryBuilder
+	private ConcurrentHashMap<String, Object> lockMapMock;
+
+	@Mock
+	private ObjectFactory objectFactory;
 	
 	private static final Object LOCK = new Object();
 	
 	private VaultSynchronizer unit;
 	
-	@BeforeClass
-	public static void setupStatic() {
-		AbstractTest.prepareMockStatic();
-	}
-	
 	@Before
 	public void setup() {
-		setupStatic();
-		PowerMockito.when(RootObjectFactory.buildMap(true)).thenReturn((Map)lockMapMock);
 		unit = new VaultSynchronizer();
 		unit.setAuthProvider(authProviderMock);
 	}
