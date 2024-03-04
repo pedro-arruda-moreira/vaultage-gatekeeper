@@ -6,16 +6,25 @@ import lombok.*;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class ProcessSpawnerOptions {
 
     @Getter
-    final String[] command;
+    private final String[] command;
 
-    IntFunction<Boolean> failureCodeHandler = (int ret) -> ret == 0;
+    private final IntFunction<Boolean> failureCodeHandler;
 
-    final Consumer<String> logConsumer;
+    @Getter
+    private final Consumer<String> logConsumer;
 
-    final EventLoop loop;
+    @Getter
+    private final EventLoop loop;
+
+    public IntFunction<Boolean> getFailureCodeHandler() {
+        if (failureCodeHandler == null) {
+            return (int ret) -> ret == 0;
+        }
+        return failureCodeHandler;
+    }
 }

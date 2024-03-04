@@ -1,24 +1,23 @@
 package com.github.pedroarrudamoreira.vaultage.root.util;
 
-import org.quartz.SchedulerConfigException;
-import org.quartz.spi.ThreadPool;
-
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import lombok.Getter;
 import org.springframework.web.context.ContextLoader;
 
-public class EventLoopQuartzThreadPool implements ThreadPool {
+public class EventLoopQuartzThreadPool implements ThreadPoolExt {
 
-	private final EventLoop eventLoop;
+	@Getter(lazy = true)
+	private final EventLoop eventLoop = ContextLoader.getCurrentWebApplicationContext().getBean(EventLoop.class);;
 
 	public EventLoopQuartzThreadPool() {
-		eventLoop = ContextLoader.getCurrentWebApplicationContext().getBean(EventLoop.class);
+		super();
 	}
 
 	private static final int THE_ONLY_THREAD = 1;
 
 	@Override
 	public boolean runInThread(Runnable runnable) {
-		eventLoop.execute(runnable::run);
+		getEventLoop().execute(runnable::run);
 		return true;
 	}
 
@@ -28,7 +27,7 @@ public class EventLoopQuartzThreadPool implements ThreadPool {
 	}
 
 	@Override
-	public void initialize() throws SchedulerConfigException {
+	public void initialize() {
 		// no-op
 	}
 
@@ -51,7 +50,8 @@ public class EventLoopQuartzThreadPool implements ThreadPool {
 	public void setInstanceName(String schedName) {
 		// no-op
 	}
-	
+
+	@Override
 	public void setThreadCount(int count) {
 		// no-op
 	}

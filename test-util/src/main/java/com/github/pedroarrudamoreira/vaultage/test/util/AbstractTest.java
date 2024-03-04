@@ -2,6 +2,7 @@ package com.github.pedroarrudamoreira.vaultage.test.util;
 
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import lombok.SneakyThrows;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
@@ -28,6 +29,11 @@ public abstract class AbstractTest {
         prepareMocks(this);
         prepareMockStatic();
         configureFactory(this);
+    }
+
+    @After
+    public void destroy() {
+        ObjectFactory.setFactory(null);
     }
 
     public static void prepareMocks(AbstractTest test) {

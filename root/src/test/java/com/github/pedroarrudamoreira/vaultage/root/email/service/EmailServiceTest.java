@@ -89,7 +89,6 @@ public class EmailServiceTest extends AbstractTest {
             return null;
         }).when(eventLoop).execute(Mockito.any());
         impl = new EmailService();
-        impl.setObjectFactory(objectFactory);
         impl.setEventLoop(eventLoop);
         impl.setSslContextFactory(mockSslFactory);
         impl.setSmtpUsername(FAKE_EMAIL_ADDRESS);

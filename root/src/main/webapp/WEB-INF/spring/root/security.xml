@@ -13,18 +13,7 @@
 	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
 		<property name="filters">
 			<list>
-				<bean
-					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-					<property name="maxSessionsPerDay"
-						value="${security.max-sessions-per-day:7}" />
-					<property name="maxSessionsPerHour"
-						value="${security.max-sessions-per-hour:5}" />
-					<property name="maxLoginAttemptsPerSession"
-						value="${security.max-attempts-per-session:3}" />
-					<property name="sessionDurationInHours"
-						value="${security.session-duration-in-hours:72}" />
-					<property name="secure" value="${security.https-enabled:true}" />
-				</bean>
+				<ref bean="sessionController"/>
 				
 				<bean
 					class="com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter">

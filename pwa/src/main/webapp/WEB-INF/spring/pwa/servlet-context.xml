@@ -47,12 +47,6 @@
 		<beans:property name="attempts" value="${mobile.online_pin_attempts:5}"/>
 	</beans:bean>
 
-	<beans:bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController"
-		id="sessionController">
-		<beans:property name="sessionDurationInHours" value="${security.session-duration-in-hours:72}" />
-		<beans:property name="secure" value="${security.https-enabled:true}" />
-	</beans:bean>
-
 	<authentication-manager>
 		<authentication-provider user-service-ref="tokenService" />
 	</authentication-manager>

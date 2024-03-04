@@ -43,11 +43,12 @@ public class ProcessSpawner {
 	}
 
 	private Process tryExecution(boolean doWait) throws Exception {
-		String[] realCommand = new String[options.command.length];
-		System.arraycopy(options.command, 1, realCommand, 1, options.command.length - 1);
+		String[] optionsCommand = options.getCommand();
+		String[] realCommand = new String[optionsCommand.length];
+		System.arraycopy(optionsCommand, 1, realCommand, 1, optionsCommand.length - 1);
 		Exception caughEx = null;
 		for(String suffix : SUFFIXES) {
-			realCommand[0] = options.command[0] + suffix;
+			realCommand[0] = optionsCommand[0] + suffix;
 			try {
 				return doExecute(doWait, realCommand);
 			} catch (IOException e) {
@@ -68,7 +69,7 @@ public class ProcessSpawner {
 			return process;
 		}
 		int retVal = process.waitFor();
-		if(!options.failureCodeHandler.apply(retVal)) {
+		if(!options.getFailureCodeHandler().apply(retVal)) {
 			throw new RuntimeException(String.format("command %s failed with status %d",
 					commandString, retVal));
 		}
@@ -90,8 +91,9 @@ public class ProcessSpawner {
 					if(StringUtils.isBlank(line)) {
 						continue;
 					}
-					if(options.logConsumer != null && line.startsWith("%MSG:")) {
-						options.logConsumer.accept(line.substring(5));
+					Consumer<String> logConsumer = options.getLogConsumer();
+					if(logConsumer != null && line.startsWith("%MSG:")) {
+						logConsumer.accept(line.substring(5));
 						continue;
 					}
 					Object logLine = buildLog(processNumber, line);
@@ -106,7 +108,7 @@ public class ProcessSpawner {
 			}
 			return process.isAlive();
 		};
-		options.loop.repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
+		options.getLoop().repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
 	}
 
 	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)

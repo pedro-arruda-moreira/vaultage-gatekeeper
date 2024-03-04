@@ -1,25 +1,5 @@
 package com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter;
 
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.servlet.FilterChain;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenType;
 import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
@@ -29,10 +9,23 @@ import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ObjectFactory.class})
-public class TwoFactorAuthFilterTest {
+import javax.servlet.FilterChain;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class TwoFactorAuthFilterTest extends AbstractTest {
 	
 	private static final String FAKE_PASSWORD = "myp4ss";
 	private static final String FAKE_TOKEN = "mytoken_1234567890";
@@ -74,24 +67,23 @@ public class TwoFactorAuthFilterTest {
 
 	@Mock
 	private EventLoop eventLoop;
+
+//	@Mock
+//	private ObjectFactory objectFactory;
 	
 	private TwoFactorAuthFilter impl;
 	
 	private boolean emailEnabled = true;
 	
-	@BeforeClass
-	public static void setupStatic() {
-		AbstractTest.prepareMockStatic();
-	}
-	
 	@Before
 	public void setup() {
-		AbstractTest.prepareMockStatic();
 		impl = new TwoFactorAuthFilter();
 		impl.setEnabled(true);
 		impl.setServletContext(servletContextMock);
 		impl.setEmailService(emailServiceMock);
 		impl.setAuthProvider(authProvider);
+		impl.setEventLoop(eventLoop);
+		impl.setTokenManager(tokenManager);
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.CHECK_EMAIL_HTML_LOCATION)).thenReturn(checkEmailDispatcherMock);

@@ -58,9 +58,7 @@ public class EmailService implements InitializingBean {
 	private boolean enabled;
 	@Setter
 	private EventLoop eventLoop;
-	@Setter @Autowired
-	private ObjectFactory objectFactory;
-	
+
 	private Properties emailProperties;
 	
 	public boolean isAuthenticationConfigured() {
@@ -106,13 +104,13 @@ public class EmailService implements InitializingBean {
 		});
 	}
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if(enabled) {
 			Assert.notNull(smtpHost, "smtpHost required.");
 			Assert.notNull(smtpPort, "smtpPort required.");
 			Assert.notNull(smtpUsername, "smtpUsername required.");
 			Assert.notNull(thisServerHost, "thisServerHost required.");
-			Properties props = objectFactory.doBuild(Properties.class);
+			Properties props = ObjectFactory.build(Properties.class);
 			props.setProperty(SMTP_HOST_KEY, smtpHost);
 			props.setProperty(SMTP_PORT_KEY, smtpPort);
 			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);
