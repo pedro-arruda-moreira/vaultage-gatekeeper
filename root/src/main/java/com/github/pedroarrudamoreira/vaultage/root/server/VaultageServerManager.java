@@ -22,6 +22,7 @@ import com.github.pedroarrudamoreira.vaultage.util.ThreadControl;
 
 import lombok.Setter;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @CommonsLog
 public class VaultageServerManager implements DisposableBean {
@@ -30,6 +31,7 @@ public class VaultageServerManager implements DisposableBean {
     private AuthenticationProvider userProvider;
 
     @Setter
+    @Autowired
     private EventLoop eventLoop;
 
     private static enum SystemStatus {

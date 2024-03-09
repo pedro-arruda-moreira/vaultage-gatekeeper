@@ -1,11 +1,11 @@
 package com.github.pedroarrudamoreira.vaultage.root.boot.listener;
 
-import java.util.HashMap;
-import java.util.function.Supplier;
-
-import javax.servlet.ServletContext;
-
-import org.junit.Assert;
+import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
+import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
+import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
+import com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,24 +18,16 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
-import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
-import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
-import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
-import com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager;
-import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
-import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import java.util.HashMap;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SessionController.class, EventLoop.class})
-public class StarterTest {
+@PrepareForTest({SessionController.class})
+public class StarterTest extends AbstractTest {
 	@Mock
 	private AuthenticationProvider userProviderMock;
 
 	@Mock
 	private VaultageServerManager serverManagerMock;
-
-	@Mock
-	private ServletContext servletContextMock;
 
 	@Mock
 	private ApplicationContext applicationContextMock;
@@ -48,7 +40,7 @@ public class StarterTest {
 
 	private Starter impl;
 
-	private Supplier<Boolean> obtainedFunction;
+	private EventLoop.Task obtainedFunction;
 
 	@BeforeClass
 	public static void setupStatic() {
@@ -63,11 +55,12 @@ public class StarterTest {
 		impl.setEventLoop(eventLoop);
 		impl.setServerManager(serverManagerMock);
 		impl.setUserProvider(userProviderMock);
+		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(applicationContextMock);
 		Mockito.when(applicationContextMock.getEnvironment()).thenReturn(environmentMock);
 		Mockito.doAnswer(i -> {
-			obtainedFunction = i.getArgument(0, Supplier.class);
+			obtainedFunction = i.getArgument(0, EventLoop.Task.class);
 			return null;
-		}).when(eventLoop).repeatTask(Mockito.any(), Mockito.anyLong(), Mockito.any());
+		}).when(eventLoop).execute(Mockito.any());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -77,10 +70,8 @@ public class StarterTest {
 		userMap.put("u2", new User());
 		Mockito.when(userProviderMock.getUsers()).thenReturn(userMap);
 		Mockito.when(environmentMock.resolvePlaceholders(Mockito.any())).thenReturn("d1").thenReturn("d2");
-		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(null).thenReturn(applicationContextMock);
-		impl.setServletContext(servletContextMock);
-		Assert.assertTrue(obtainedFunction.get());
-		obtainedFunction.get();
+		impl.onApplicationEvent(null);
+		obtainedFunction.run();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -92,10 +83,8 @@ public class StarterTest {
 		userMap.put("u2", new User());
 		Mockito.when(userProviderMock.getUsers()).thenReturn(userMap);
 		Mockito.when(environmentMock.resolvePlaceholders(Mockito.any())).thenReturn("d1");
-		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(null).thenReturn(applicationContextMock);
-		impl.setServletContext(servletContextMock);
-		Assert.assertTrue(obtainedFunction.get());
-		obtainedFunction.get();
+		impl.onApplicationEvent(null);
+		obtainedFunction.run();
 	}
 
 	@Test
@@ -107,10 +96,8 @@ public class StarterTest {
 		userMap.put("u2", new User());
 		Mockito.when(userProviderMock.getUsers()).thenReturn(userMap);
 		Mockito.when(environmentMock.resolvePlaceholders(Mockito.any())).thenReturn("d1").thenReturn("d2");
-		PowerMockito.when(SessionController.getApplicationContext()).thenReturn(null).thenReturn(applicationContextMock);
-		impl.setServletContext(servletContextMock);
-		Assert.assertTrue(obtainedFunction.get());
-		Assert.assertFalse(obtainedFunction.get());
+		impl.onApplicationEvent(null);
+		obtainedFunction.run();
 		Mockito.verify(serverManagerMock).doStartAndMonitorVaultageServers();
 	}
 

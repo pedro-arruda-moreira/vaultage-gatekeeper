@@ -1,25 +1,19 @@
 package com.github.pedroarrudamoreira.vaultage.root.boot.listener;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.ServletContext;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.ServletContextAware;
-
-import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
-
 import lombok.Setter;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 
-public class Starter implements ServletContextAware {
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+public class Starter implements ApplicationListener<ContextRefreshedEvent> {
 	@Setter
 	private AuthenticationProvider userProvider;
 	
@@ -27,19 +21,11 @@ public class Starter implements ServletContextAware {
 	private VaultageServerManager serverManager;
 
 	@Setter
-	@Autowired
 	private EventLoop eventLoop;
-
-
-	@Override
-	public void setServletContext(ServletContext servletContext) {
-		doConfigureVaultageServers(servletContext, userProvider.getUsers());
-	}
-	
 
 	private void doValidateUsers(Map<String, User> users) {
 		Set<String> dataDirs = new HashSet<>();
-		Set<Integer> ports = new HashSet<Integer>();
+		Set<Integer> ports = new HashSet<>();
 		for(Entry<String, User> userEntry : users.entrySet()) {
 			User user = userEntry.getValue();
 			String userId = userEntry.getKey();
@@ -52,16 +38,11 @@ public class Starter implements ServletContextAware {
 		}
 	}
 
-
-	private void doConfigureVaultageServers(ServletContext servletContext, Map<String, User> users) {
-		eventLoop.repeatTask(() -> {
-			if (SessionController.getApplicationContext() == null) {
-				return true;
-			}
-			doValidateUsers(users);
+	@Override
+	public void onApplicationEvent(ContextRefreshedEvent event) {
+		eventLoop.execute(() -> {
+			doValidateUsers(userProvider.getUsers());
 			serverManager.doStartAndMonitorVaultageServers();
-			return false;
-		}, 500, TimeUnit.MILLISECONDS);
+		});
 	}
-
 }

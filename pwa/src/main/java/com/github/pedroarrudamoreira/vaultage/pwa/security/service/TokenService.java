@@ -35,6 +35,7 @@ public class TokenService implements UserDetailsService {
 	@Setter
 	private String offlineEnabled;
 	@Setter
+	@Autowired
 	private TokenManager tokenManager;
 	@Setter
 	@Autowired

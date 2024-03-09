@@ -17,6 +17,7 @@
 				<property name="userProvider" ref="authProvider" />
 			</bean>
 		</property>
+		<property name="eventLoop" ref="eventLoop"/>
 	</bean>
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ProxyServlet" id="proxyServlet">
@@ -55,6 +56,7 @@
 		<property name="mobilePattern"
 			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
 		<property name="authProvider" ref="authProvider" />
+		<property name="tokenManager" ref="tokenManager" />
 	</bean>
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer"
