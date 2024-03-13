@@ -6,6 +6,7 @@
 						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:annotation-config />
+    <context:property-placeholder location="file:${gatekeeper.config.dir}/vaultage-security-facade/config.properties"/>
 
     <bean class="com.github.pedroarrudamoreira.vaultage.util.EventLoop" name="eventLoop"/>
 

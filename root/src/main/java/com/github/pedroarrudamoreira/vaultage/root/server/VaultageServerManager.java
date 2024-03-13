@@ -128,6 +128,7 @@ public class VaultageServerManager implements DisposableBean {
                 processCount.incrementAndGet();
                 return SystemStatus.START_VAULTAGE_SERVER;
             } else if (!vaultageServer.isAlive()) {
+                processCount.decrementAndGet();
                 return SystemStatus.RESTART_VAULTAGE_SERVER;
             }
             return SystemStatus.ONLINE;

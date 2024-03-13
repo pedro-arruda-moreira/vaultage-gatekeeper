@@ -2,14 +2,13 @@
 	xmlns:sec="http://www.springframework.org/schema/security"
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-	
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+
 	<bean id="preAuthFilter"
-		class="com.github.pedroarrudamoreira.vaultage.root.redirector.filter.PreAuthFilter"/>
-	
+		  class="com.github.pedroarrudamoreira.vaultage.root.redirector.filter.PreAuthFilter"/>
+
 	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
 		<property name="filters">
 			<list>
@@ -27,17 +26,11 @@
 	</bean>
 	
 	<bean id="authProvider" class="com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider">
-		<property name="userConfigFile" value="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/users.json"></property>
+		<property name="userConfigFile" value="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/users.json" />
+		<property name="implementation" value="${security.implementation:basic}" />
 	</bean>
-	
-	<sec:http use-expressions="true" >
-		<sec:csrf disabled="true"/>
-		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
-		<sec:http-basic />
-		<sec:custom-filter ref="compositeFilter" after="LAST"/>
-		<sec:custom-filter ref="preAuthFilter" before="BASIC_AUTH_FILTER"/>
-	</sec:http>
-	
+
+	<import resource="security-${security.implementation:basic}.xml" />
 
 	<sec:authentication-manager>
 		<sec:authentication-provider user-service-ref="authProvider"/>

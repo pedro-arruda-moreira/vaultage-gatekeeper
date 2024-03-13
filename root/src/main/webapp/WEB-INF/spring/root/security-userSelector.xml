@@ -1,0 +1,21 @@
+<beans
+        xmlns:sec="http://www.springframework.org/schema/security"
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <sec:http use-expressions="true" >
+        <sec:csrf disabled="true"/>
+        <sec:intercept-url pattern="/form/user-selector.jsp" access="permitAll()" />
+        <sec:intercept-url pattern="/select-channel.jsp" access="permitAll()" />
+        <sec:intercept-url pattern="/**" access="isAuthenticated()" />
+        <sec:form-login login-page="/form/user-selector.jsp"
+            login-processing-url="/select-channel.jsp"
+            authentication-success-forward-url="/select-channel.jsp"
+            username-parameter="user"
+            password-parameter="step" />
+        <sec:custom-filter ref="compositeFilter" after="LAST"/>
+        <sec:custom-filter ref="preAuthFilter" before="BASIC_AUTH_FILTER"/>
+    </sec:http>
+</beans>

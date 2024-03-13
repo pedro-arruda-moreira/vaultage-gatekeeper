@@ -1,6 +1,7 @@
 package com.github.pedroarrudamoreira.vaultage.pwa.security.service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,6 +42,13 @@ public class TokenService implements UserDetailsService {
 	@Autowired
 	private SessionController sessionController;
 
+	@Setter
+	private String securityImpl;
+
+	private boolean isBasic() {
+		return "basic".equals(securityImpl);
+	}
+
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String userPassword;
@@ -49,7 +57,7 @@ public class TokenService implements UserDetailsService {
 		currentRequest.setAttribute(CONFIG_CACHE, configCache);
 		currentRequest.setAttribute(CRYPTO_TYPE, cryptoType);
 		currentRequest.setAttribute(OFFLINE_ENABLED, offlineEnabled);
-		currentRequest.setAttribute(USE_BASIC, Boolean.toString(!twoFactorAuth));
+		currentRequest.setAttribute(USE_BASIC, String.valueOf(isBasic() && !twoFactorAuth));
 		String providedToken = currentRequest.getParameter("value");
 		if(tokenManager.isTokenValid(providedToken, TokenType.GLOBAL)) {
 			tokenManager.removeToken(providedToken);
@@ -61,7 +69,7 @@ public class TokenService implements UserDetailsService {
 				).toString());
 		return new User(
 				username, "{noop}" + userPassword, true, true, true, true,
-				Arrays.asList(new SimpleGrantedAuthority("role1")));
+				Collections.singletonList(new SimpleGrantedAuthority("role1")));
 	}
 
 }

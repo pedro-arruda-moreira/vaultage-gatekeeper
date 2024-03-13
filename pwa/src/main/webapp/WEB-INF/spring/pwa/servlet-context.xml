@@ -2,12 +2,9 @@
 	xmlns="http://www.springframework.org/schema/security"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
 
-	<context:property-placeholder location="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/config.properties"/>
 	<http use-expressions="true">
 		<csrf disabled="true" />
 		<intercept-url pattern="/auth" access="permitAll" />
@@ -32,6 +29,7 @@
 		name="tokenService">
 		<beans:property name="cryptoType" value="${mobile.crypto_type:offline}"/>
 		<beans:property name="twoFactorAuth" value="${2fa.enabled:#{false}}"/>
+		<beans:property name="securityImpl" value="${security.implementation}"/>
 		<beans:property name="autoCreate" value="${mobile.auto_create_vault:false}"/>
 		<beans:property name="configCache" value="${mobile.config_cache:false}"/>
 		<beans:property name="offlineEnabled" value="${mobile.offline_enabled:false}"/>
