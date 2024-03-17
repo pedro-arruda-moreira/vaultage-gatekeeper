@@ -36,9 +36,8 @@ public class ChannelDecidingServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		String userAgent = req.getHeader("User-Agent").toUpperCase();
-
-		if(mobilePattern.matcher(userAgent).matches()) {
+		boolean userAgentMatch = isMobileDevice(req);
+		if(userAgentMatch) {
 			sendToPWA(req, resp, false);
 		} else {
 			if(useCliForDesktop()) {
@@ -47,6 +46,12 @@ public class ChannelDecidingServlet extends HttpServlet {
 				sendToPWA(req, resp, true);
 			}
 		}
+	}
+
+	public boolean isMobileDevice(HttpServletRequest req) {
+		String userAgent = req.getHeader("User-Agent").toUpperCase();
+
+		return mobilePattern.matcher(userAgent).matches();
 	}
 
 	private boolean useCliForDesktop() {

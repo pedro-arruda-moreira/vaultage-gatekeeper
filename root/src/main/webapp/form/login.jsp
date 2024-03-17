@@ -1,17 +1,37 @@
-<%@page import="java.util.Enumeration"%>
 <%@ page language="java" contentType="text/html; charset=utf-8"
     pageEncoding="utf-8"%>
+<%@page import="java.util.Enumeration"%>
+<%@ page import="org.springframework.web.context.ContextLoaderListener" %>
+<%@ page import="org.springframework.context.ApplicationContext"%>
+<%@page import="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ChannelDecidingServlet"%>
 <!doctype html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>Login form</title>
+
+<%
+    ApplicationContext context = ContextLoaderListener.getCurrentWebApplicationContext();
+	ChannelDecidingServlet decidingServlet = context.getBean(ChannelDecidingServlet.class);
+	if(decidingServlet.isMobileDevice(request)) { %>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+		<style type="text/css">
+			input[type="submit"] {
+				width: 80px !important;
+				height: 40px !important;
+			}
+		</style>
+<%  } else { %>
+		<style type="text/css">
+			input:not([type="submit"]) {
+				width: 300px !important;
+			}
+		</style>
+<%  } %>
+
 <style type="text/css">
 	table,tbody,tr,td {
 		border: none !important;
-	}
-	input:not([type="submit"]) {
-		width: 300px !important;
 	}
 	span {
 		color: rgb(164, 0, 24);
@@ -55,22 +75,19 @@
 					break;
 				}
 			}
-			if(hasError) {
-		%>
-		<tr>
-			<td>
-				&nbsp;
-			</td>
-			<td>
-				<span>
-					Username and/or password incorrect.<br/>
-					Please try again.
-				</span>
-			</td>
-		</tr>
-		<%
-			}
-		%>
+			if(hasError) { %>
+				<tr>
+					<td>
+						&nbsp;
+					</td>
+					<td>
+						<span>
+							Username and/or password incorrect.<br/>
+							Please try again.
+						</span>
+					</td>
+				</tr>
+		<%  } %>
 	</table>
 </form>
 </body>
