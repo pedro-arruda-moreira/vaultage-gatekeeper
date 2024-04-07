@@ -14,6 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.ServletContextAware;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager;
@@ -49,6 +54,7 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 
 	private ServletContext servletContext;
 
+	@Autowired
 	private TokenManager tokenManager;
 
 	private EventLoop eventLoop;
@@ -57,6 +63,12 @@ public class TwoFactorAuthFilter extends SwitchingFilter implements ServletConte
 	@Override
 	protected void doFilterImpl(HttpServletRequest request, HttpServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
+		SecurityContext context = ObjectFactory.invokeStatic(SecurityContextHolder.class, "getContext");
+		Authentication authentication = context.getAuthentication();
+		if(authentication instanceof AnonymousAuthenticationToken) {
+			chain.doFilter(request, response);
+			return;
+		}
 		if(!emailService.isEnabled()) {
 			throw new IllegalStateException("cannot send emails because e-mail service"
 					+ " is not enabled. Please enable it and try again.");

@@ -29,7 +29,7 @@ public class SessionTokenSupplier implements ITokenSupplier {
 	@Override
 	public String generateNewToken() {
 		Set<String> sessionTokens = getTokensSet();
-		final String gen = ObjectFactory.generateUUID();
+		final String gen = ObjectFactory.generateUUID().toString();
 		sessionTokens.add(gen);
 		return gen;
 	}

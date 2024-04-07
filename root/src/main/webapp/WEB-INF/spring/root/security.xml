@@ -26,7 +26,7 @@
 	</bean>
 	
 	<bean id="authProvider" class="com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider">
-		<property name="userConfigFile" value="file:${gatekeeper.properties.dir:user.home}/vaultage-security-facade/users.json" />
+		<property name="userConfigFile" value="file:${gatekeeper.config.dir}/vaultage-security-facade/users.json" />
 		<property name="implementation" value="${security.implementation:basic}" />
 	</bean>
 

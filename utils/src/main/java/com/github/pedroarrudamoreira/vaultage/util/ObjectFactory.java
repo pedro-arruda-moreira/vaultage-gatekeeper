@@ -37,7 +37,7 @@ public class ObjectFactory {
 		return getFactory().doFromSupplier(AtomicIntegerSupplier.class, value);
 	}
 	
-	public static String generateUUID() {
+	public static UUID generateUUID() {
 		return getFactory().doInvokeStatic(UUID.class, "randomUUID");
 	}
 	

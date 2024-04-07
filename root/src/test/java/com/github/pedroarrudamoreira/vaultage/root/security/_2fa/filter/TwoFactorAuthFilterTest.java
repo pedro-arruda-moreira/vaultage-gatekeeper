@@ -6,6 +6,7 @@ import com.github.pedroarrudamoreira.vaultage.root.email.service.EmailService;
 import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider;
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
+import com.github.pedroarrudamoreira.vaultage.test.util.ObjectFactoryStatic;
 import com.github.pedroarrudamoreira.vaultage.test.util.mockito.ArgumentCatcher;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
@@ -15,6 +16,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.servlet.FilterChain;
 import javax.servlet.RequestDispatcher;
@@ -68,8 +73,18 @@ public class TwoFactorAuthFilterTest extends AbstractTest {
 	@Mock
 	private EventLoop eventLoop;
 
-//	@Mock
-//	private ObjectFactory objectFactory;
+	@Mock
+	private ObjectFactory objectFactory;
+
+	@Mock
+	@ObjectFactoryStatic(
+			clazz = SecurityContextHolder.class,
+			name = "getContext"
+	)
+	private SecurityContext securityContext;
+
+	@Mock
+	private Authentication authentication;
 	
 	private TwoFactorAuthFilter impl;
 	
@@ -84,6 +99,7 @@ public class TwoFactorAuthFilterTest extends AbstractTest {
 		impl.setAuthProvider(authProvider);
 		impl.setEventLoop(eventLoop);
 		impl.setTokenManager(tokenManager);
+		Mockito.when(securityContext.getAuthentication()).thenAnswer(i -> authentication);
 		Mockito.when(httpServletRequestMock.getSession()).thenReturn(httpSessionMock);
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.CHECK_EMAIL_HTML_LOCATION)).thenReturn(checkEmailDispatcherMock);
@@ -92,6 +108,13 @@ public class TwoFactorAuthFilterTest extends AbstractTest {
 		Mockito.when(servletContextMock.getRequestDispatcher(
 				TwoFactorAuthFilter.CHANNEL_SELECTOR_LOCATION)).thenReturn(channelSelectorDispatcherMock);
 		Mockito.when(emailServiceMock.isEnabled()).thenAnswer(i -> emailEnabled);
+	}
+
+	@Test
+	public void testDoFilter_ClearOnAnonymous() throws Exception {
+		authentication = Mockito.mock(AnonymousAuthenticationToken.class);
+		impl.doFilter(httpServletRequestMock, httpServletResponseMock, filterChainMock);
+		Mockito.verify(filterChainMock).doFilter(httpServletRequestMock, httpServletResponseMock);
 	}
 	
 	@Test

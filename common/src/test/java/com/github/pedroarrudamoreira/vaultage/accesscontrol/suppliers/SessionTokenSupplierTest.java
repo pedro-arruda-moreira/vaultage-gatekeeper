@@ -52,7 +52,7 @@ public class SessionTokenSupplierTest {
 		tokens = new HashSet<>();
 		impl = new SessionTokenSupplier(sessionController);
 		Mockito.when(sessionController.getCurrentRequest()).thenReturn(mockRequest);
-		PowerMockito.when(ObjectFactory.generateUUID()).thenReturn(MOCK_TOKEN);
+		PowerMockito.when(ObjectFactory.generateUUID()).thenReturn(UUID.fromString(MOCK_TOKEN));
 		Mockito.when(mockRequest.getSession()).thenReturn(mockSession);
 		Mockito.when(mockSession.getAttribute(
 				SessionTokenSupplier.SESSION_TOKENS)).thenAnswer(inv -> tokens);
