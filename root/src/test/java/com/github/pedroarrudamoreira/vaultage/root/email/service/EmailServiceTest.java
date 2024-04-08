@@ -8,12 +8,10 @@ import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -23,11 +21,10 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import java.util.Properties;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Session.class, Transport.class})
+@PrepareForTest({Session.class})
 public class EmailServiceTest extends AbstractTest {
     private static final String FAKE_EMAIL_CONTENT = "hello!";
     private static final String FAKE_SUBJECT = "Greetings";
@@ -62,26 +59,16 @@ public class EmailServiceTest extends AbstractTest {
     private DataSource mockDataSource;
 
     @Mock
-    private ExecutorService mockExecutorService;
-
-    @Mock
     private EventLoop eventLoop;
 
     @Mock
     private ObjectFactory objectFactory;
 
-    @BeforeClass
-    public static void setupStatic() {
-        AbstractTest.prepareMockStatic();
-    }
-
     @Before
     public void setup() {
-        setupStatic();
         properties = new Properties();
-//		PowerMockito.when(RootObjectFactory.buildMimeMessage(emailSessionMock)).thenReturn(mimeMessageMock);
+
         Mockito.when(objectFactory.doInvokeStatic(Mockito.eq(Session.class), Mockito.eq("getDefaultInstance"), Mockito.any(), Mockito.any())).then(
-//		PowerMockito.when(RootObjectFactory.buildEmailSession(Mockito.any(), Mockito.any())).then(
                 new ArgumentCatcher<Session>(emailSessionMock,
                         v -> obtainedAuthenticator = v.get(), 3));
         Mockito.doAnswer((i) -> {
@@ -155,8 +142,7 @@ public class EmailServiceTest extends AbstractTest {
                 mimeMessageMock).setContent(Mockito.any());
         impl.sendEmail(FAKE_EMAIL_ADDRESS, FAKE_SUBJECT, FAKE_EMAIL_CONTENT, null);
         Mockito.verify(mimeMessageMock).setFrom();
-        PowerMockito.verifyStatic(Transport.class);
-        Transport.send(mimeMessageMock);
+        Mockito.verify(objectFactory).doInvokeStatic(Transport.class, "send", mimeMessageMock);
         Assert.assertEquals(1, obtainedMultipart.get().getCount());
         Assert.assertEquals(FAKE_EMAIL_CONTENT, obtainedMultipart.get().getBodyPart(0).getContent());
         Assert.assertEquals(FAKE_SUBJECT, obtainedSubject.get());
@@ -185,8 +171,7 @@ public class EmailServiceTest extends AbstractTest {
         Assert.assertEquals(FAKE_PASSWORD, access.getPassword());
         Assert.assertEquals(FAKE_EMAIL_ADDRESS, access.getUserName());
         Mockito.verify(mimeMessageMock).setFrom();
-        PowerMockito.verifyStatic(Transport.class);
-        Transport.send(mimeMessageMock);
+        Mockito.verify(objectFactory).doInvokeStatic(Transport.class, "send", mimeMessageMock);
         final MimeMultipart multipart = obtainedMultipart.get();
         Assert.assertEquals(2, multipart.getCount());
         Assert.assertEquals(FAKE_EMAIL_CONTENT, multipart.getBodyPart(0).getContent());

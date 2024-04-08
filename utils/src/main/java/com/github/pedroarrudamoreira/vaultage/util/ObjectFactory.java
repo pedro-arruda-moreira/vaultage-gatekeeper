@@ -8,10 +8,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ObjectFactory {
 	
@@ -88,17 +92,48 @@ public class ObjectFactory {
 	}
 
 	@SneakyThrows
+	@SuppressWarnings("unchecked")
 	public <T> T doInvokeStatic(Class<?> clazz, String name, Object ... args) {
 		if(args == null || args.length == 0) {
 			return (T) clazz.getMethod(name).invoke(null);
 		}
-		return (T) clazz.getMethod(name, types(args)).invoke(null, args);
+		Class<?>[] theTypes = types(args);
+		Method targetMethod = null;
+		try {
+			targetMethod = clazz.getMethod(name, theTypes);
+		} catch (Exception e) {
+			targetMethod = null;
+		}
+		if(Arrays.stream(theTypes).anyMatch(Objects::isNull) || targetMethod == null) {
+			Method[] allMethods = clazz.getMethods();
+			targetMethod = Arrays.stream(allMethods).filter((m) -> {
+				if(!m.getName().equals(name)) {
+					return false;
+				}
+				Class<?>[] parameterTypes = m.getParameterTypes();
+				if(parameterTypes.length != theTypes.length) {
+					return false;
+				}
+				int[] index = new int[] {0};
+				return Arrays.stream(theTypes).allMatch((currentCheckType) -> {
+					if(currentCheckType == null) {
+						return true;
+					}
+					int i = index[0]++;
+					return parameterTypes[i].isAssignableFrom(currentCheckType);
+				});
+			}).collect(Collectors.toList()).get(0);
+		}
+		return (T) targetMethod.invoke(null, args);
 	}
 
 	private Class<?>[] types(Object[] args) {
 		Class<?>[] classes = new Class[args.length];
 		int i = 0;
 		for(Object o : args) {
+			if(o == null) {
+				continue;
+			}
 			classes[i++] = o.getClass();
 		}
 		return classes;
