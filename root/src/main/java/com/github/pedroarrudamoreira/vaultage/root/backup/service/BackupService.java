@@ -27,6 +27,8 @@ import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Setter
 @CommonsLog
 public class BackupService implements Job {
@@ -46,7 +48,7 @@ public class BackupService implements Job {
 	@Setter
 	private VaultSynchronizer vaultSynchronizer;
 
-	@Setter
+	@Setter @Autowired
 	private EventLoop eventLoop;
 	@SneakyThrows
 	private void doBackup() {
