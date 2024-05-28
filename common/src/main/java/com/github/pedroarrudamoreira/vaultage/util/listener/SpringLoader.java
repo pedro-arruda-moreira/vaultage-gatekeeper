@@ -27,16 +27,17 @@ public class SpringLoader extends ContextLoaderListener {
             if (!initialized) {
                 initialized = true;
                 loadConfigPath();
-                loadPreloadProperties();
+                loadPreloadProperties(sce);
             }
         }
         super.contextInitialized(sce);
     }
 
     @SneakyThrows
-    private static void loadPreloadProperties() {
+    private static void loadPreloadProperties(ServletContextEvent sce) {
         Properties loadedProperties = ObjectFactory.build(Properties.class);
         File configFile = ObjectFactory.build(File.class, System.getProperty("gatekeeper.config.dir"), "vaultage-security-facade/config.properties");
+        sce.getServletContext().log("config file -> " + configFile.getAbsolutePath());
         try (InputStream is = ObjectFactory.buildFileInputStream(configFile)) {
             loadedProperties.load(is);
         }
