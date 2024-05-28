@@ -1,7 +1,6 @@
 {
 	"test1": {
 		"data-dir": "/data_dir_1",
-		"vaultage-username": "user1",
 		"basic-password": "test2",
 		"port":3000,
 		"email": "example@example.com",
@@ -13,7 +12,6 @@
 	},
 	"test2": {
 		"data-dir": "/data_dir_2",
-		"vaultage-username": "user2",
 		"basic-password": "password",
 		"port":3100,
 		"backup-config": {

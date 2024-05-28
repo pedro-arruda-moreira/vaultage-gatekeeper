@@ -12,6 +12,17 @@
 	</parent>
 	<artifactId>gatekeeper-test-util</artifactId>
 	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>5.3.25</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.pedro-arruda-moreira.vaultage-gatekeeper</groupId>
+			<artifactId>gatekeeper-utils</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 
 		<dependency>
 			<groupId>org.junit.vintage</groupId>

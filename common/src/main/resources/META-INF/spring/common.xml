@@ -1,0 +1,29 @@
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config />
+    <context:property-placeholder location="file:${gatekeeper.config.dir}/vaultage-security-facade/config.properties"/>
+
+    <bean class="com.github.pedroarrudamoreira.vaultage.util.EventLoop" name="eventLoop"/>
+
+    <bean
+            name="sessionController"
+            class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
+        <property name="maxSessionsPerDay"
+                  value="${security.max-sessions-per-day:7}"/>
+        <property name="maxSessionsPerHour"
+                  value="${security.max-sessions-per-hour:5}"/>
+        <property name="maxLoginAttemptsPerSession"
+                  value="${security.max-attempts-per-session:3}"/>
+        <property name="sessionDurationInHours"
+                  value="${security.session-duration-in-hours:72}"/>
+        <property name="secure" value="${security.https-enabled:true}"/>
+    </bean>
+    <bean class="com.github.pedroarrudamoreira.vaultage.accesscontrol.TokenManager" name="tokenManager"/>
+
+
+</beans>

@@ -19,11 +19,11 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SessionController.class, ObjectFactory.class})
+@PrepareForTest({ObjectFactory.class})
 public class SessionTokenSupplierTest {
 	
 	@Mock
@@ -38,18 +38,21 @@ public class SessionTokenSupplierTest {
 	
 	private SessionTokenSupplier impl;
 
+	@Mock
+	private SessionController sessionController;
+
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before
 	public void setup() {
 		setupStatic();
 		tokens = new HashSet<>();
-		impl = new SessionTokenSupplier();
-		PowerMockito.when(SessionController.getCurrentRequest()).thenReturn(mockRequest);
-		PowerMockito.when(ObjectFactory.generateUUID()).thenReturn(MOCK_TOKEN);
+		impl = new SessionTokenSupplier(sessionController);
+		Mockito.when(sessionController.getCurrentRequest()).thenReturn(mockRequest);
+		PowerMockito.when(ObjectFactory.generateUUID()).thenReturn(UUID.fromString(MOCK_TOKEN));
 		Mockito.when(mockRequest.getSession()).thenReturn(mockSession);
 		Mockito.when(mockSession.getAttribute(
 				SessionTokenSupplier.SESSION_TOKENS)).thenAnswer(inv -> tokens);

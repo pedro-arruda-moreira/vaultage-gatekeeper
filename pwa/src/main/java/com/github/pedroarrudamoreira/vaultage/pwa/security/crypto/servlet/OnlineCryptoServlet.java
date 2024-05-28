@@ -1,20 +1,18 @@
 package com.github.pedroarrudamoreira.vaultage.pwa.security.crypto.servlet;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.github.pedroarrudamoreira.vaultage.pwa.util.ReaderForSupplier;
+import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import lombok.Setter;
+import lombok.extern.apachecommons.CommonsLog;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
-import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.github.pedroarrudamoreira.vaultage.pwa.util.PWAObjectFactory;
-
-import lombok.Setter;
-import lombok.extern.apachecommons.CommonsLog;
+import java.io.IOException;
 @CommonsLog
 public class OnlineCryptoServlet extends HttpServlet {
 	
@@ -25,12 +23,12 @@ public class OnlineCryptoServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private final ObjectReader reader = PWAObjectFactory.readerFor(CryptoData.class);
+	private final ObjectReader reader = ObjectFactory.fromSupplier(ReaderForSupplier.class, CryptoData.class);
 	@Setter
 	private int attempts;
 
 	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		final HttpSession session = req.getSession();
 		CryptoData cryptoData = (CryptoData) session.getAttribute(CRYPTO_KEY);
 		if(cryptoData == null) {
@@ -58,10 +56,14 @@ public class OnlineCryptoServlet extends HttpServlet {
 	}
 	
 	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		HttpSession session = req.getSession();
 		synchronized (session) {
 			CryptoData cryptoData = reader.readValue(req.getReader());
+			if(cryptoData == null || StringUtils.isEmpty(cryptoData.getGenKey())) {
+				log.warn(String.format("Attempted to set a empty crypto key for session %s", session.getId()));
+				return;
+			}
 			resetAttempts(cryptoData, session.getId());
 			session.setAttribute(CRYPTO_KEY, cryptoData);
 		}

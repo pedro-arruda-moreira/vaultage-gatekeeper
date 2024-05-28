@@ -4,32 +4,34 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
-import javax.servlet.ServletResponse;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.proxy.UndeclaredThrowableException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.ServletContextAware;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
-
-public class SessionController implements HttpSessionListener, ServletContextAware,
-	ServletRequestListener, Filter {
+import lombok.extern.apachecommons.CommonsLog;
+@CommonsLog
+public class SessionController extends OncePerRequestFilter implements HttpSessionListener, ServletContextAware,
+	ServletRequestListener {
 	
 	static final String ORIGINAL_URL = ServletRequestListener.class.getCanonicalName()
 			+ "_originalRequest";
@@ -53,17 +55,17 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	private static int maxSessionsPerDay = -1;
 
 	private static int maxLoginAttemptsPerSession = -1;
-	static {
-		final int[] count = new int[1];
-		EventLoop.repeatTask(() -> {
+	public SessionController(@Autowired EventLoop eventLoop) {
+		eventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - hour");
 			REMAINING_HOUR_SESSIONS.set(maxSessionsPerHour);
-			count[0]++;
-			if(count[0] >= 24) {
-				count[0] = 0;
-				REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
-			}
 			return true;
 		}, 1, TimeUnit.HOURS);
+		eventLoop.repeatTask(() -> {
+			log.info("clearing login attempts - day");
+			REMAINING_DAY_SESSIONS.set(maxSessionsPerDay);
+			return true;
+		}, 1, TimeUnit.DAYS);
 	}
 
 	public static synchronized void setMaxSessionsPerDay(int maxSessionsPerDay) {
@@ -86,15 +88,18 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 		if(SessionController.maxLoginAttemptsPerSession != -1) {
 			return;
 		}
+		if(maxLoginRetryPerSession < 3) {
+			maxLoginRetryPerSession = 3;
+		}
 		SessionController.maxLoginAttemptsPerSession = maxLoginRetryPerSession;
 	}
 
 	
-	public static HttpServletRequest getCurrentRequest() {
+	public HttpServletRequest getCurrentRequest() {
 		return (HttpServletRequest) REQUESTS.get();
 	}
 
-	public static String getOriginalUrl() {
+	public String getOriginalUrl() {
 		return REQUESTS.get().getAttribute(ORIGINAL_URL).toString();
 	}
 	
@@ -155,7 +160,7 @@ public class SessionController implements HttpSessionListener, ServletContextAwa
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws IOException, ServletException {
 		((HttpServletRequest)request).getSession().setAttribute(LOGGED_ON_KEY, ObjectFactory.PRESENT);
 		chain.doFilter(request, response);

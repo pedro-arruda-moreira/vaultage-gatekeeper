@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 
 import lombok.AccessLevel;
@@ -33,31 +32,23 @@ public class ProcessSpawner {
 	
 	private static final String [] SUFFIXES = new String[] {StringUtils.EMPTY, ".sh", ".cmd", ".bat", ".exe"};
 	
-	private final String[] command;
-	
-	private final IntFunction<Boolean> failureCodeHandler;
-	
-	private final Consumer<String> logConsumer;
+	private final ProcessSpawnerOptions options;
 
-	public static Process executeProcess(Consumer<String> logConsumer, String ... command) throws Exception {
-		return new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, logConsumer).tryExecution(false);
+	public static Process executeProcess(ProcessSpawnerOptions options) throws Exception {
+		return new ProcessSpawner(options).tryExecution(false);
 	}
 
-	public static void executeProcessAndWait(String ... command) throws Exception {
-		new ProcessSpawner(command, DEFAULT_FAILURE_HANDLER, null).tryExecution(true);
-	}
-
-	public static void executeProcessAndWait(IntFunction<Boolean> failureCodeHandler,
-			String ... command) throws Exception {
-		new ProcessSpawner(command, failureCodeHandler, null).tryExecution(true);
+	public static void executeProcessAndWait(ProcessSpawnerOptions options) throws Exception {
+		new ProcessSpawner(options).tryExecution(true);
 	}
 
 	private Process tryExecution(boolean doWait) throws Exception {
-		String[] realCommand = new String[command.length];
-		System.arraycopy(command, 1, realCommand, 1, command.length - 1);
+		String[] optionsCommand = options.getCommand();
+		String[] realCommand = new String[optionsCommand.length];
+		System.arraycopy(optionsCommand, 1, realCommand, 1, optionsCommand.length - 1);
 		Exception caughEx = null;
 		for(String suffix : SUFFIXES) {
-			realCommand[0] = command[0] + suffix;
+			realCommand[0] = optionsCommand[0] + suffix;
 			try {
 				return doExecute(doWait, realCommand);
 			} catch (IOException e) {
@@ -72,23 +63,22 @@ public class ProcessSpawner {
 		String commandString = String.join(" ", realCommand);
 		final int processNumber = PROCESS_COUNTER.incrementAndGet();
 		log.info(String.format("Process number %d is [%s]", processNumber, commandString));
-		buildLogThread(process, commandString, Level.INFO, processNumber);
-		buildLogThread(process, commandString, Level.SEVERE, processNumber);
+		buildLogThread(process, Level.INFO, processNumber);
+		buildLogThread(process, Level.SEVERE, processNumber);
 		if(!doWait) {
 			return process;
 		}
 		int retVal = process.waitFor();
-		if(!failureCodeHandler.apply(retVal)) {
+		if(!options.getFailureCodeHandler().apply(retVal)) {
 			throw new RuntimeException(String.format("command %s failed with status %d",
 					commandString, retVal));
 		}
 		return null;
 	}
 
-	private void buildLogThread(Process process, String commandString, Level level,
-			int processNumber) throws UnsupportedEncodingException {
-		InputStream input;
-		input = getStream(process, level);
+	private void buildLogThread(Process process, Level level,
+			int processNumber) {
+		InputStream input = getStream(process, level);
 		Supplier<Boolean> logRunnable = () -> {
 			try {
 				int availableBytes = input.available();
@@ -101,6 +91,7 @@ public class ProcessSpawner {
 					if(StringUtils.isBlank(line)) {
 						continue;
 					}
+					Consumer<String> logConsumer = options.getLogConsumer();
 					if(logConsumer != null && line.startsWith("%MSG:")) {
 						logConsumer.accept(line.substring(5));
 						continue;
@@ -117,17 +108,16 @@ public class ProcessSpawner {
 			}
 			return process.isAlive();
 		};
-		EventLoop.repeatTask(logRunnable, 700l, TimeUnit.MILLISECONDS);
+		options.getLoop().repeatTask(logRunnable, 700L, TimeUnit.MILLISECONDS);
 	}
 
 	private BufferedReader getBytesFromStreamAsReader(InputStream input, int availableBytes)
-			throws IOException, UnsupportedEncodingException {
+			throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		IOUtils.copy(input, baos, availableBytes);
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 		InputStreamReader isr = buildReader(bais);
-		BufferedReader br = new BufferedReader(isr, 1);
-		return br;
+		return new BufferedReader(isr, 1);
 	}
 
 	private InputStream getStream(Process process, Level level) {

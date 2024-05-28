@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -19,11 +20,15 @@ import com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvid
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
 import com.github.pedroarrudamoreira.vaultage.root.util.zip.EasyZip;
+import com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer;
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.apachecommons.CommonsLog;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Setter
 @CommonsLog
 public class BackupService implements Job {
@@ -36,10 +41,18 @@ public class BackupService implements Job {
 
 	private boolean doEncrypt;
 	
+	private boolean hideContents;
+	
 	private Map<String, BackupProvider> providers;
+	
+	@Setter
+	private VaultSynchronizer vaultSynchronizer;
 
+	@Setter @Autowired
+	private EventLoop eventLoop;
 	@SneakyThrows
 	private void doBackup() {
+		int timeout = 500;
 		for(Entry<String, User> userEntry : authProvider.getUsers().entrySet()) {
 			User user = userEntry.getValue();
 			Map<String, Object> backupConfig = user.getBackupConfig();
@@ -57,25 +70,28 @@ public class BackupService implements Job {
 			if(!vaultageDataFolder.exists()) {
 				continue;
 			}
-			byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder);
+			final byte[] vaultageDatabaseBytes = doZipDatabase(vaultageDataFolder, user.getUserId());
 			for(Map.Entry<BackupProvider, Object> providerConfig : providersForUser) {
-				providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
-						providerConfig.getValue());
+				eventLoop.schedule(() -> {
+					providerConfig.getKey().doBackup(user, RootObjectFactory.buildByteArrayInputStream(vaultageDatabaseBytes),
+							providerConfig.getValue());
+				}, timeout, TimeUnit.MILLISECONDS);
+				timeout += 500;
 			}
 		}
 		
 	}
-	private byte[] doZipDatabase(final File vaultageDataFolder) throws IOException {
+	private byte[] doZipDatabase(final File vaultageDataFolder, String userId) throws IOException {
 		final ByteArrayOutputStream vaultageDatabase = RootObjectFactory.buildByteArrayOutputStream();
 		EasyZip zipControl = null; 
 		if(doEncrypt) {
-			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, thisServerHost);
+			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, thisServerHost, hideContents);
 		} else {
-			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, null);
+			zipControl = RootObjectFactory.buildEasyZip(vaultageDataFolder, null, false);
 		}
-		zipControl.zipIt(vaultageDatabase);
-		byte[] vaultageDatabaseBytes = vaultageDatabase.toByteArray();
-		return vaultageDatabaseBytes;
+		final EasyZip zc = zipControl;
+		vaultSynchronizer.runSync(userId, () -> zc.zipIt(vaultageDatabase));
+		return vaultageDatabase.toByteArray();
 	}
 	private List<Map.Entry<BackupProvider, Object>> findProvidersForUser(Map<String, Object> backupConfig,
 			String userId) {

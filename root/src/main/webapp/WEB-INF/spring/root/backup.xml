@@ -1,11 +1,7 @@
 <beans
-	xmlns:sec="http://www.springframework.org/schema/security"
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
 	
@@ -13,8 +9,10 @@
 		class="com.github.pedroarrudamoreira.vaultage.root.backup.service.BackupService">
 		<property name="enabled" value="${backup.enabled}"/>
 		<property name="doEncrypt" value="${backup.encrypt}"/>
+		<property name="hideContents" value="${backup.hide-contents:false}"/>
 		<property name="thisServerHost" value="${server.host}"/>
 		<property name="authProvider" ref="authProvider"/>
+		<property name="vaultSynchronizer" ref="vaultSynchronizer" />
 		<property name="providers">
 			<map>
 				<entry key="file">
@@ -24,6 +22,9 @@
 					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.EmailAttachmentProvider">
 						<property name="emailService" ref="emailService"/>
 					</bean>
+				</entry>
+				<entry key="command">
+					<bean class="com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl.ExecuteCommandProvider"/>
 				</entry>
 			</map>
 		</property>

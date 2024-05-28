@@ -8,12 +8,16 @@ import javax.servlet.http.HttpSession;
 
 import com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class SessionTokenSupplier implements ITokenSupplier {
+
+	private final SessionController sessionController;
 	static final String SESSION_TOKENS = "__SESSION_TOKENS_&*@&";
 
 	private Set<String> getTokensSet() {
-		final HttpSession session = SessionController.getCurrentRequest().getSession();
+		final HttpSession session = sessionController.getCurrentRequest().getSession();
 		Set<String> sessionTokens = (Set<String>) session.getAttribute(SESSION_TOKENS);
 		if(sessionTokens == null) {
 			sessionTokens = new HashSet<>();
@@ -23,9 +27,9 @@ public class SessionTokenSupplier implements ITokenSupplier {
 	}
 
 	@Override
-	public String generateNewToken() throws IOException {
+	public String generateNewToken() {
 		Set<String> sessionTokens = getTokensSet();
-		final String gen = ObjectFactory.generateUUID();
+		final String gen = ObjectFactory.generateUUID().toString();
 		sessionTokens.add(gen);
 		return gen;
 	}

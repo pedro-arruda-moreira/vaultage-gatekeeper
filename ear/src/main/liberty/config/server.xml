@@ -1,0 +1,19 @@
+<server description="new server">
+	<featureManager>
+		<feature>servlet-4.0</feature>
+		<feature>localConnector-1.0</feature>
+		<feature>jsp-2.3</feature>
+		<feature>javaMail-1.6</feature>
+
+		<!-- for javax.activation... -->
+		<feature>jaxb-2.2</feature>
+	</featureManager>
+
+    <httpEndpoint httpPort="8080" id="defaultHttpEndpoint">
+    	<httpOptions removeServerHeader="true"/>
+    </httpEndpoint>
+    <applicationManager autoExpand="true"/>
+    <applicationMonitor updateTrigger="mbean"/>
+
+    <enterpriseApplication id="gatekeeper-ear" location="gatekeeper-ear.ear" name="gatekeeper-ear"/>
+</server>

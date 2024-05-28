@@ -2,16 +2,18 @@
 	xmlns:sec="http://www.springframework.org/schema/security"
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-	
-	
-	
+						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+
+	<bean id="preAuthFilter"
+		  class="com.github.pedroarrudamoreira.vaultage.root.redirector.filter.PreAuthFilter"/>
+
 	<bean id="compositeFilter" class="org.springframework.web.filter.CompositeFilter">
 		<property name="filters">
 			<list>
+				<ref bean="sessionController"/>
+				
 				<bean
 					class="com.github.pedroarrudamoreira.vaultage.root.security._2fa.filter.TwoFactorAuthFilter">
 					<property name="enabled" value="${2fa.enabled:#{false}}"/>
@@ -19,34 +21,16 @@
 					<property name="emailService" ref="emailService"/>
 					<property name="authProvider" ref="authProvider"/>
 				</bean>
-	
-				<bean
-					class="com.github.pedroarrudamoreira.vaultage.accesscontrol.SessionController">
-					<property name="maxSessionsPerDay"
-						value="${security.max-sessions-per-day:7}" />
-					<property name="maxSessionsPerHour"
-						value="${security.max-sessions-per-hour:5}" />
-					<property name="maxLoginAttemptsPerSession"
-						value="${security.max-attempts-per-session:3}" />
-					<property name="sessionDurationInHours"
-						value="${security.session-duration-in-hours:72}" />
-					<property name="secure" value="${security.https-enabled:true}" />
-				</bean>
 			</list>
 		</property>
 	</bean>
 	
 	<bean id="authProvider" class="com.github.pedroarrudamoreira.vaultage.root.security.AuthenticationProvider">
-		<property name="userConfigFile" value="file:${user.home}/vaultage-security-facade/users.json"></property>
+		<property name="userConfigFile" value="file:${gatekeeper.config.dir}/vaultage-security-facade/users.json" />
+		<property name="implementation" value="${security.implementation:basic}" />
 	</bean>
-	
-	<sec:http use-expressions="true" >
-		<sec:csrf disabled="true"/>
-		<sec:intercept-url pattern="/**" access="isAuthenticated()" />
-		<sec:http-basic />
-		<sec:custom-filter ref="compositeFilter" after="LAST"/>
-	</sec:http>
-	
+
+	<import resource="security-${security.implementation:basic}.xml" />
 
 	<sec:authentication-manager>
 		<sec:authentication-provider user-service-ref="authProvider"/>

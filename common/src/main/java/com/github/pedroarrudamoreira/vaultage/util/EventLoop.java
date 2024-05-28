@@ -1,74 +1,63 @@
 package com.github.pedroarrudamoreira.vaultage.util;
 
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import lombok.Setter;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.springframework.beans.factory.BeanClassLoaderAware;
+
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+public class EventLoop implements BeanClassLoaderAware {
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+    @Setter
+    private ClassLoader beanClassLoader;
 
-public class EventLoop {
-	@NoArgsConstructor
-	@AllArgsConstructor
-	private static class RunnableWrapper implements Runnable {
-		@Setter
-		private Runnable runnable;
-		
-		private final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-		
-		@Override
-		public void run() {
-			Thread.currentThread().setContextClassLoader(loader);
-			runnable.run();
-		}
-		
-	}
-	
-	private EventLoop() {
-		super();
-	}
+    public interface Task {
+        void run();
+    }
 
-	private static final ScheduledThreadPoolExecutor EXECUTOR = new ScheduledThreadPoolExecutor(1,
-			new BasicThreadFactory.Builder().daemon(
-					true).namingPattern("vaultage gatekeeper event loop thread").build());
+    static  {
+        executor = Executors.newSingleThreadScheduledExecutor(new BasicThreadFactory.Builder().daemon(
+                true).namingPattern("vaultage gatekeeper event loop thread").build());
+    }
+
+    private static final ScheduledExecutorService executor;
 
 
-	public static void repeatTask(final Supplier<Boolean> task, final long timeAmmount,
-			final TimeUnit timeUnit) {
-		final RunnableWrapper wrapper = new RunnableWrapper();
-		Runnable command = new Runnable() {
+    public void repeatTask(final Supplier<Boolean> task, final long timeAmount,
+                           final TimeUnit timeUnit) {
+        Task command = new Task() {
 
-			@Override
-			public void run() {
-				if(task.get()) {
-					schedule(wrapper, timeAmmount, timeUnit);
-				}
-			}
-		};
-		wrapper.setRunnable(command);
-		execute(wrapper);
-	}
+            @Override
+            public void run() {
+                if (task.get()) {
+                    schedule(this, timeAmount, timeUnit);
+                }
+            }
+        };
+        execute(command);
+    }
 
-	public static ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
-		return EXECUTOR.schedule(wrapIfNecessary(command), delay, unit);
-	}
+    public ScheduledFuture<?> schedule(Task command, long delay, TimeUnit unit) {
+        return executor.schedule(wrap(command), delay, unit);
+    }
 
-	public static void execute(Runnable command) {
-		EXECUTOR.execute(wrapIfNecessary(command));
-	}
+    public void execute(Task command) {
+        executor.execute(wrap(command));
+    }
 
-	private static Runnable wrapIfNecessary(Runnable command) {
-		return command instanceof RunnableWrapper ? command : new RunnableWrapper(command);
-	}
+    private Runnable wrap(Task command) {
+        return () -> {
+            if(beanClassLoader != null) {
+                Thread.currentThread().setContextClassLoader(beanClassLoader);
+            }
+            command.run();
+        };
+    }
 
-	public static void shutdown() {
-		EXECUTOR.shutdown();
-	}
+    public void shutdown() {
+        executor.shutdown();
+    }
 
-	
 
 }

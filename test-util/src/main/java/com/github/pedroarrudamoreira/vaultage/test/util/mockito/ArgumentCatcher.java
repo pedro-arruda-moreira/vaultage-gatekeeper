@@ -29,7 +29,11 @@ public class ArgumentCatcher<T> implements Answer<T> {
 	private Consumer<Supplier> consumer;
 	
 	private int consumerPosition;
-	
+
+	public ArgumentCatcher(int ... positions) {
+		this(null, positions);
+	}
+
 	public ArgumentCatcher(T returnVal, int ... positions) {
 		this.positions = positions;
 		this.returnVal = returnVal;

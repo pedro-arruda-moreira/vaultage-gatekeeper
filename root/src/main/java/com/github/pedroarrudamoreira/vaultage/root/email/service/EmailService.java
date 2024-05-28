@@ -11,12 +11,12 @@ import javax.mail.MessagingException;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
 import com.github.pedroarrudamoreira.vaultage.root.email.util.EasySSLSocketFactory;
@@ -56,7 +56,9 @@ public class EmailService implements InitializingBean {
 	private EasySSLSocketFactory sslContextFactory;
 	@Getter @Setter
 	private boolean enabled;
-	
+	@Setter @Autowired
+	private EventLoop eventLoop;
+
 	private Properties emailProperties;
 	
 	public boolean isAuthenticationConfigured() {
@@ -71,7 +73,7 @@ public class EmailService implements InitializingBean {
 
 	
 	public void sendEmail(final String addressToSend, final String subject, String emailContent, DataSource attachment)
-			throws MessagingException, AddressException {
+			throws MessagingException {
 		Message message = RootObjectFactory.buildMimeMessage(configureSession());
 		message.setFrom();
 
@@ -93,22 +95,22 @@ public class EmailService implements InitializingBean {
 
 
 		message.setContent(multipart);
-		EventLoop.execute(() -> {
+		eventLoop.execute(() -> {
 			try {
-				Transport.send(message);
-			} catch (MessagingException e) {
+				ObjectFactory.invokeStatic(Transport.class, "send", message);
+			} catch (Exception e) {
 				log.error("Error while sending email", e);
 			}
 		});
 	}
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		if(enabled) {
 			Assert.notNull(smtpHost, "smtpHost required.");
 			Assert.notNull(smtpPort, "smtpPort required.");
 			Assert.notNull(smtpUsername, "smtpUsername required.");
 			Assert.notNull(thisServerHost, "thisServerHost required.");
-			Properties props = ObjectFactory.buildProperties();
+			Properties props = ObjectFactory.build(Properties.class);
 			props.setProperty(SMTP_HOST_KEY, smtpHost);
 			props.setProperty(SMTP_PORT_KEY, smtpPort);
 			props.setProperty(SOCKET_FACTORY_PORT_KEY, smtpPort);

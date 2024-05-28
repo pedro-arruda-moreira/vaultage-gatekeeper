@@ -4,23 +4,20 @@
 	      http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	version="3.0">
 	<display-name>vaultage-web-app-root</display-name>
-	<welcome-file-list>
-		<welcome-file>select-channel</welcome-file>
-	</welcome-file-list>
 	
 	<error-page>
 		<error-code>500</error-code>
-		<location>/500.html</location>
+		<location>/500.jsp</location>
 	</error-page>
 	<error-page>
 		<error-code>404</error-code>
-		<location>/404.html</location>
+		<location>/404.jsp</location>
 	</error-page>
-	
+
 	<listener>
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+		<listener-class>com.github.pedroarrudamoreira.vaultage.util.listener.SpringLoader</listener-class>
 	</listener>
-	
+
 	<session-config>
 		<cookie-config>
 			<http-only>true</http-only>
@@ -41,6 +38,7 @@
 	<servlet>
 		<servlet-name>channelDecidingServlet</servlet-name>
 		<servlet-class>com.github.pedroarrudamoreira.vaultage.spring.servlet.DelegatingServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>channelDecidingServlet</servlet-name>
@@ -58,23 +56,17 @@
 			<param-name>log</param-name>
 			<param-value>false</param-value>
 		</init-param>
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/config</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/dist/*</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>proxyServlet</servlet-name>
-		<url-pattern>/main.css</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
 	
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>
+			classpath:META-INF/spring/common.xml,
 			WEB-INF/spring/root/root.xml,
 			WEB-INF/spring/root/security.xml,
 			WEB-INF/spring/root/backup.xml

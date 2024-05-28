@@ -1,21 +1,23 @@
 <beans
-	xmlns:sec="http://www.springframework.org/schema/security"
 	xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-						http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd
-						http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	
-	<context:property-placeholder location="file:${user.home}/vaultage-security-facade/config.properties"/>
-	
+
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.boot.listener.Starter">
 		<property name="userProvider" ref="authProvider" />
+		<property name="serverManager">
+			<bean class="com.github.pedroarrudamoreira.vaultage.root.server.VaultageServerManager">
+				<property name="userProvider" ref="authProvider" />
+			</bean>
+		</property>
+		<property name="eventLoop" ref="eventLoop"/>
 	</bean>
 	
 	<bean class="com.github.pedroarrudamoreira.vaultage.root.redirector.servlet.ProxyServlet" id="proxyServlet">
-		<property name="userProvider" ref="authProvider" />
+		<property name="authProvider" ref="authProvider" />
+		<property name="vaultSynchronizer" ref="vaultSynchronizer" />
 	</bean>
 
 		
@@ -48,7 +50,14 @@
 		id="channelDecidingServlet">
 		<property name="mobilePattern"
 			value="${mobile.user_agent_pattern:^.*(IPHONE|IPAD|MOBILE|ANDROID|IOS).*$}"/>
-		<property name="useCliForDesktop" value="${desktop.use_cli:false}"/>
+		<property name="authProvider" ref="authProvider" />
+		<property name="tokenManager" ref="tokenManager" />
+	</bean>
+	
+	<bean class="com.github.pedroarrudamoreira.vaultage.root.vault.sync.VaultSynchronizer"
+		id="vaultSynchronizer">
+		<property name="authProvider" ref="authProvider" />
+		<property name="enabled" value="${vault.synchronization:true}" />
 	</bean>
 	
 

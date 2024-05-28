@@ -27,7 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 
 @RunWith(PowerMockRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -53,7 +53,7 @@ public class AuthenticationProviderTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before

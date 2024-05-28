@@ -2,7 +2,6 @@ package com.github.pedroarrudamoreira.vaultage.root.backup.provider.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -29,14 +28,15 @@ public final class BackupProviderUtils {
 	
 	@SuppressWarnings("unchecked")
 	public static List<String> getParamsAsStringList(Object params) {
+		List<String> result = new ArrayList<>();
 		if(params instanceof List) {
-			List<String> result = new ArrayList<>();
 			for(Object current : (List<Object>) params) {
 				result.add(current.toString());
 			}
 			return result;
 		}
-		return Collections.singletonList(params.toString());
+		result.add(params.toString());
+		return result;
 	}
 	public static String createFileName(User vaultageUser) {
 		return String.format("vaultage_backup_%s_%s.zip",

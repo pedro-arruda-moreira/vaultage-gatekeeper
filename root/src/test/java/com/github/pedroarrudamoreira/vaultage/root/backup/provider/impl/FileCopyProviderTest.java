@@ -3,8 +3,8 @@ package com.github.pedroarrudamoreira.vaultage.root.backup.provider.impl;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collections;
 
 import org.apache.commons.logging.Log;
@@ -22,7 +22,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.github.pedroarrudamoreira.vaultage.root.security.model.User;
 import com.github.pedroarrudamoreira.vaultage.root.util.RootObjectFactory;
-import com.github.pedroarrudamoreira.vaultage.test.util.TestUtils;
+import com.github.pedroarrudamoreira.vaultage.test.util.AbstractTest;
 import com.github.pedroarrudamoreira.vaultage.util.IOUtils;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
 
@@ -38,7 +38,7 @@ public class FileCopyProviderTest {
 	private static final String FAKE_PATH = "/path/to/file.txt";
 
 	@Mock
-	private FileOutputStream fileOutputStreamMock;
+	private OutputStream fileOutputStreamMock;
 	
 	@Mock
 	private Log logMock;
@@ -50,7 +50,7 @@ public class FileCopyProviderTest {
 	
 	@BeforeClass
 	public static void setupStatic() {
-		TestUtils.doPrepareForTest();
+		AbstractTest.prepareMockStatic();
 	}
 	
 	@Before
