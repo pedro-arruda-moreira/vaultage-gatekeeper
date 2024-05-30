@@ -7,11 +7,13 @@ import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
 import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawnerOptions;
 import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import lombok.extern.apachecommons.CommonsLog;
 
+@CommonsLog
 public class NpmInstaller {
-    public static final EventLoop loop = new EventLoop();
+    public final EventLoop loop = new EventLoop();
 
-    public static void main(String[] args) {
+    private void execute(String[] args) {
         try {
             try {
                 ProcessSpawner.executeProcessAndWait(
@@ -26,6 +28,12 @@ public class NpmInstaller {
             String locationToInstall = ObjectFactory.normalizePath(args[1]);
             String subFolderWithContents = ObjectFactory.normalizePath(
                     locationToInstall + '/' + args[2]);
+            log.info(String.format(
+                    "\n  package: %s\n  location to install: %s\n  sub folder: %s",
+                    npmPackage,
+                    locationToInstall,
+                    subFolderWithContents
+            ));
             ProcessSpawner.executeProcessAndWait(
                     ProcessSpawnerOptions.builder()
                             .loop(loop)
@@ -37,7 +45,7 @@ public class NpmInstaller {
                                     locationToInstall
                             })
                             .build());
-            FileOperations.copyFiles(subFolderWithContents, locationToInstall);
+            new FileOperations().copyFiles(subFolderWithContents, locationToInstall);
             if (!executeCleanup(locationToInstall)) {
                 throw new RuntimeException("Could not execute cleanup.");
             }
@@ -49,7 +57,11 @@ public class NpmInstaller {
         }
     }
 
-    private static boolean executeCleanup(String locationToInstall) {
+    public static void main(String[] args) {
+        new NpmInstaller().execute(args);
+    }
+
+    private boolean executeCleanup(String locationToInstall) {
         return FileOperations.destroy(locationToInstall + "/node_modules") &&
                 FileOperations.destroy(locationToInstall + "/package.json") &&
                 FileOperations.destroy(locationToInstall + "/package-lock.json");

@@ -1,47 +1,50 @@
 package com.github.pedroarrudamoreira.vaultage.build.tools.utils;
 
+import com.github.pedroarrudamoreira.vaultage.util.EventLoop;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.apachecommons.CommonsLog;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
-import com.github.pedroarrudamoreira.vaultage.build.tools.NpmInstaller;
-import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawnerOptions;
-import org.apache.commons.lang3.SystemUtils;
-
-import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawner;
-import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
-
+@CommonsLog
+@RequiredArgsConstructor
 public class FileOperations {
 
-    private FileOperations() {
-        super();
-    }
+    public void copyFiles(String origin, String destination) throws Exception {
+        Path source = Paths.get(origin);
+        Path target = Paths.get(destination);
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                Path targetDir = target.resolve(source.relativize(dir));
+                log.info(String.format(
+                        "    directory %s -> %s",
+                        dir.toFile().getAbsolutePath(),
+                        targetDir.toFile().getAbsolutePath()
+                ));
+                try {
+                    Files.createDirectory(targetDir);
+                } catch (FileAlreadyExistsException e) {
+                    // Ignore if directory already exists
+                }
+                return FileVisitResult.CONTINUE;
+            }
 
-    public static void copyFiles(String origin, String destination) throws Exception {
-        boolean isWindows = SystemUtils.IS_OS_WINDOWS;
-        if (isWindows) {
-            ProcessSpawner.executeProcessAndWait(
-                    ProcessSpawnerOptions.builder()
-                            .failureCodeHandler(retVal -> retVal <= 7)
-                            .command(new String[]{
-                                    "robocopy",
-                                    ObjectFactory.normalizePath(origin),
-                                    ObjectFactory.normalizePath(destination),
-                                    "/E"
-                            })
-                            .loop(NpmInstaller.loop)
-                            .build());
-        } else {
-            ProcessSpawner.executeProcessAndWait(
-                    ProcessSpawnerOptions.builder()
-                            .command(new String[]{
-                                    "cp",
-                                    "-r",
-                                    ObjectFactory.normalizePath(origin),
-                                    ObjectFactory.normalizePath(destination)
-                            })
-                            .loop(NpmInstaller.loop)
-                            .build());
-
-        }
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                Path targetFile = target.resolve(source.relativize(file));
+                log.info(String.format(
+                        "        file %s -> %s",
+                        file.toFile().getAbsolutePath(),
+                        targetFile.toFile().getAbsolutePath()
+                ));
+                Files.copy(file, targetFile, StandardCopyOption.REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 
     public static boolean destroy(String location) {
