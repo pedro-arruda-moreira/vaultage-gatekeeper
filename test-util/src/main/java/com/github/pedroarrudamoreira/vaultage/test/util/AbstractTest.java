@@ -56,13 +56,13 @@ public abstract class AbstractTest {
         ObjectFactory objF = null;
         Field[] allFields = test.getClass().getDeclaredFields();
         for (Field fld : allFields) {
-            fld.setAccessible(true);
             if (fld.getAnnotation(Mock.class) == null) {
                 continue;
             }
             if (fld.getType() != ObjectFactory.class) {
                 continue;
             }
+            fld.setAccessible(true);
             objF = (ObjectFactory) fld.get(test);
             break;
         }
@@ -71,27 +71,27 @@ public abstract class AbstractTest {
         }
         ObjectFactory.setFactory(objF);
         for (Field fld : allFields) {
-            fld.setAccessible(true);
             if (fld.getAnnotation(ObjectFactoryBuilder.class) == null) {
                 continue;
             }
+            fld.setAccessible(true);
             ObjectFactoryBuilder f = fld.getAnnotation(ObjectFactoryBuilder.class);
             Class<?> type = fld.getType();
             configureBuilderInMockito(test, objF, fld, f, type);
         }
         for (Field fld : allFields) {
-            fld.setAccessible(true);
             if (fld.getAnnotation(ObjectFactoryStatic.class) == null) {
                 continue;
             }
+            fld.setAccessible(true);
             ObjectFactoryStatic f = fld.getAnnotation(ObjectFactoryStatic.class);
             configureStaticInMockito(test, objF, fld, f);
         }
         for (Field fld : allFields) {
-            fld.setAccessible(true);
             if (fld.getAnnotation(ObjectFactorySupplier.class) == null) {
                 continue;
             }
+            fld.setAccessible(true);
             ObjectFactorySupplier f = fld.getAnnotation(ObjectFactorySupplier.class);
             configureSupplierInMockito(test, objF, fld, f);
         }
@@ -108,8 +108,7 @@ public abstract class AbstractTest {
         String[] args = f.args();
         final BiFunction<Object, Integer, Boolean> matcher = (arg, idx) -> {
             if (args.length > idx) {
-                Object expected = parseExpression(test, args[idx]);
-                return arg == expected || arg.equals(expected);
+                return checkIfArgumentMatch(test, arg, args[idx]);
             }
             return true;
         };
@@ -137,6 +136,11 @@ public abstract class AbstractTest {
         }
     }
 
+    private static boolean checkIfArgumentMatch(AbstractTest test, Object arg, String args) {
+        Object expected = parseExpression(test, args);
+        return arg == expected || arg.equals(expected) || "{{any}}".equals(expected);
+    }
+
     @SneakyThrows
     private static void configureStaticInMockito(AbstractTest test, ObjectFactory objF, Field fld, ObjectFactoryStatic f) {
         Answer<Object> answer = i -> fld.get(test);
@@ -149,8 +153,7 @@ public abstract class AbstractTest {
         String[] args = f.args();
         final BiFunction<Object, Integer, Boolean> matcher = (arg, idx) -> {
             if (args.length > idx) {
-                Object expected = parseExpression(test, args[idx]);
-                return arg == expected || arg.equals(expected);
+                return checkIfArgumentMatch(test, arg, args[idx]);
             }
             return true;
         };
@@ -206,8 +209,7 @@ public abstract class AbstractTest {
                 }
             }
             if (values.length > idx) {
-                Object expected = parseExpression(test, values[idx]);
-                return arg == expected || arg.equals(expected);
+                return checkIfArgumentMatch(test, arg, values[idx]);
             }
             return true;
         };
