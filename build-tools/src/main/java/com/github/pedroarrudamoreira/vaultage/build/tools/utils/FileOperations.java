@@ -47,17 +47,20 @@ public class FileOperations {
         });
     }
 
-    public static boolean destroy(String location) {
+    public boolean destroy(String location) {
         return destroyImpl(new File(location));
     }
 
-    private static boolean destroyImpl(File file) {
+    private boolean destroyImpl(File file) {
         if (file.isDirectory()) {
+            log.info(String.format("    del dir %s", file.getAbsolutePath()));
             for (File child : file.listFiles()) {
                 if (!destroyImpl(child)) {
                     return false;
                 }
             }
+        } else {
+            log.info(String.format("        del file %s", file.getAbsolutePath()));
         }
         return file.delete();
     }

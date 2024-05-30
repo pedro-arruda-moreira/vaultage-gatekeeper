@@ -11,7 +11,9 @@ import lombok.extern.apachecommons.CommonsLog;
 
 @CommonsLog
 public class NpmInstaller {
-    public final EventLoop loop = new EventLoop();
+    private final EventLoop loop = new EventLoop();
+
+    private final FileOperations fileOperations = new FileOperations();
 
     private void execute(String[] args) {
         try {
@@ -62,9 +64,9 @@ public class NpmInstaller {
     }
 
     private boolean executeCleanup(String locationToInstall) {
-        return FileOperations.destroy(locationToInstall + "/node_modules") &&
-                FileOperations.destroy(locationToInstall + "/package.json") &&
-                FileOperations.destroy(locationToInstall + "/package-lock.json");
+        return fileOperations.destroy(locationToInstall + "/node_modules") &&
+                fileOperations.destroy(locationToInstall + "/package.json") &&
+                fileOperations.destroy(locationToInstall + "/package-lock.json");
     }
 
 }
