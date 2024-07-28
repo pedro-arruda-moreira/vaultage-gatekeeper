@@ -90,19 +90,16 @@ public class AuthenticationProvider implements UserDetailsService, InitializingB
         @Cleanup FileInputStream fileInputStream = new FileInputStream(file);
         @Cleanup Reader rd = new InputStreamReader(fileInputStream, StandardCharsets.UTF_8);
         @Cleanup BufferedReader brd = new BufferedReader(rd);
-        List<String> lines = new ArrayList<>();
+        StringBuilder bld = new StringBuilder();
         {
             String line;
             while ((line = brd.readLine()) != null) {
-                lines.add(spelExpressionParser.parseExpression(line,
-                        new TemplateParserContext()).getValue(new StandardEvaluationContext(environment), String.class));
+                bld.append(line);
+                bld.append('\n');
             }
         }
-        StringBuilder bld = new StringBuilder();
-        for (String line : lines) {
-            bld.append(line);
-        }
-        users = new ObjectMapper().readValue(bld.toString(), USER_TYPE_REF);
+        users = new ObjectMapper().readValue(spelExpressionParser.parseExpression(bld.toString(),
+                new TemplateParserContext()).getValue(new StandardEvaluationContext(environment), String.class), USER_TYPE_REF);
         users.forEach((k, v) -> v.setUserId(k));
     }
 
