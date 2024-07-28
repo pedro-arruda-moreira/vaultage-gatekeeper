@@ -164,8 +164,6 @@ public class BackupServiceTest extends AbstractTest {
 		Mockito.when(objectFactory.doBuild(EasyZip.class, mockFile, FAKE_HOST, false)).thenReturn(easyZipMock);
 		backupService.setDoEncrypt(true);
 		backupService.execute(null);
-		// let event loop do its things...
-//		Thread.sleep(2000l);
 		Mockito.verify(easyZipMock).zipIt(mockByteArrayOutputStream);
 		Mockito.verify(mockBackupProvider).doBackup(user, mockByteArrayInputStream, providerArg);
 	}

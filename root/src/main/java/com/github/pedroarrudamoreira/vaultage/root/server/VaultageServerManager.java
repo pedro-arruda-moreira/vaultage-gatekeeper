@@ -3,6 +3,7 @@ package com.github.pedroarrudamoreira.vaultage.root.server;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.pedroarrudamoreira.vaultage.process.ProcessSpawnerOptions;
@@ -40,7 +41,7 @@ public class VaultageServerManager implements DisposableBean {
 
     private final AtomicInteger processCount = new AtomicInteger();
 
-    private volatile boolean online = true;
+    private final AtomicBoolean online = new AtomicBoolean(true);
 
 
     public void doStartAndMonitorVaultageServers() {
@@ -123,7 +124,7 @@ public class VaultageServerManager implements DisposableBean {
 
 
     private SystemStatus obtainSystemStatus(Process vaultageServer) {
-        if (online) {
+        if (online.get()) {
             if (vaultageServer == null) {
                 processCount.incrementAndGet();
                 return SystemStatus.START_VAULTAGE_SERVER;
@@ -138,7 +139,7 @@ public class VaultageServerManager implements DisposableBean {
 
     @Override
     public void destroy() throws Exception {
-        online = false;
+        online.set(false);
         while (processCount.get() > 0) {
             ThreadControl.sleep(200);
         }

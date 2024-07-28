@@ -1,21 +1,21 @@
 package com.github.pedroarrudamoreira.vaultage.util.listener;
 
 import com.github.pedroarrudamoreira.vaultage.util.ObjectFactory;
+import lombok.Cleanup;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.SystemUtils;
 import org.springframework.web.context.ContextLoaderListener;
 
 import javax.servlet.ServletContextEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class SpringLoader extends ContextLoaderListener {
 
-    private static boolean initialized = false;
+    private static volatile boolean initialized = false;
 
     private static final List<String> PRELOAD_PROPS = Collections.singletonList("security.implementation");
 
@@ -28,9 +28,29 @@ public class SpringLoader extends ContextLoaderListener {
                 initialized = true;
                 loadConfigPath();
                 loadPreloadProperties(sce);
+                loadExtraConfig(sce);
             }
         }
         super.contextInitialized(sce);
+    }
+
+    @SneakyThrows
+    private static void loadExtraConfig(ServletContextEvent sce) {
+        String extraConfigLocation = System.getenv("EXTRA_CONFIG");
+        if(extraConfigLocation == null) {
+            return;
+        }
+        File f = ObjectFactory.build(File.class, extraConfigLocation);
+        if(!f.exists() || !f.canRead()) {
+            sce.getServletContext().log(String.format("cannot read from file %s", f.getAbsolutePath()));
+            return;
+        }
+        Properties properties = new Properties();
+        @Cleanup FileInputStream inStream = new FileInputStream(f);
+        properties.load(inStream);
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            System.setProperty(entry.getKey().toString(), entry.getValue().toString());
+        }
     }
 
     @SneakyThrows
